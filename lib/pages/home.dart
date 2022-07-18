@@ -104,7 +104,7 @@ class _ImageListState extends State<ImageList> {
       );
     }
 
-    _isLoading = true;
+    _isLoading = false;
     if (mounted) {
       setState(() {
         _isLoading;
