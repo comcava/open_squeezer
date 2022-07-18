@@ -18,29 +18,7 @@ import 'package:image/image.dart' as l_img;
 import 'package:photo_manager/photo_manager.dart';
 
 import '../config/constants.dart';
-
-// TODO: better names
-class AlbumItem {
-  final AssetPathEntity album;
-  final List<PhotoItem> photos;
-  final Set<String> selectedPhotoIds;
-
-  AlbumItem({
-    required this.album,
-    required this.photos,
-    this.selectedPhotoIds = const {},
-  });
-}
-
-class PhotoItem {
-  final AssetEntity photo;
-  final double varianceNum;
-
-  const PhotoItem({
-    required this.photo,
-    required this.varianceNum,
-  });
-}
+import '../domain/album.dart';
 
 /// Analyzes if the image is blurry, using open_cv's laplacian
 class LaplacianBlurAnalyzer {
@@ -172,6 +150,7 @@ class LaplacianBlurAnalyzer {
     return 40;
   }
 
+// TODO: rename?
   Future<List<PhotoItem>> assetBlur4Threads(
       List<AssetEntity> origPhotos) async {
     Directory tempDirectory = await getTemporaryDirectory();

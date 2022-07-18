@@ -1,55 +1,31 @@
-import 'package:after_layout/after_layout.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../domain/album.dart';
 import '../services/blur_analyzer.dart';
 import '../widgets/album.dart';
 import '../config/constants.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-
-    return Scaffold(
-      appBar: AppBar(title: Text(loc.appName)),
-      body: const Padding(
-        padding: EdgeInsets.all(kScaffoldPadding),
-        child: ImageList(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.cleaning_services_outlined),
-      ),
-    );
-  }
+  State<HomePage> createState() => _HomePageState();
 }
 
-class ImageList extends StatefulWidget {
-  const ImageList({Key? key}) : super(key: key);
-
-  @override
-  State<ImageList> createState() => _ImageListState();
-}
-
-class _ImageListState extends State<ImageList>
-    with AfterLayoutMixin<ImageList> {
-  List<AlbumItem> _blurryPhotos = List.empty(growable: true);
+class _HomePageState extends State<HomePage> {
+  // TODO: rename to photos
+  final List<AlbumItem> _blurryPhotos = List.empty(growable: true);
+  PhotoIdsSet selectedPhotoIds = {};
 
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-  }
 
-  @override
-  void afterFirstLayout(context) {
     _loadAlbums();
   }
 
@@ -122,31 +98,80 @@ class _ImageListState extends State<ImageList>
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+    final loc = AppLocalizations.of(context)!;
+
+    Widget? actionButton;
+
+    if (!_isLoading) {
+      actionButton = FloatingActionButton(
+        onPressed: () {},
+        child: const Icon(Icons.cleaning_services_outlined),
       );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: Text(loc.appName)),
+      body: Padding(
+        padding: const EdgeInsets.all(kScaffoldPadding),
+        child: _HomePageBody(
+          isLoading: _isLoading,
+          photos: _blurryPhotos,
+          selectedPhotoIds: selectedPhotoIds,
+          onPhotoSelected: (photoId) {
+            // var contains = p.selectedPhotoIds.contains(photo.photo.id);
+
+            //       var selected = _blurryPhotos
+            //           .firstWhere((element) => element.album.id == p.album.id);
+
+            //       if (contains) {
+            //         selected.selectedPhotoIds.remove(photo.photo.id);
+            //       } else {
+            //         selected.selectedPhotoIds.add(photo.photo.id);
+          },
+        ),
+      ),
+      floatingActionButton: actionButton,
+    );
+  }
+}
+
+class _HomePageBody extends StatelessWidget {
+  final bool isLoading;
+  final List<AlbumItem> photos;
+  final PhotoIdsSet selectedPhotoIds;
+  final Function(String photoId) onPhotoSelected;
+
+  const _HomePageBody({
+    Key? key,
+    required this.isLoading,
+    required this.photos,
+    required this.selectedPhotoIds,
+    required this.onPhotoSelected,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return _buildLoading();
     }
 
     return ListView(
       children: [
-        ..._blurryPhotos.map(
+        ...photos.map(
           (p) => Album(
               albumItem: p,
-              onPhotoSelected: (photo) {
-                var contains = p.selectedPhotoIds.contains(photo.photo.id);
-
-                var selected = _blurryPhotos
-                    .firstWhere((element) => element.album.id == p.album.id);
-
-                if (contains) {
-                  selected.selectedPhotoIds.remove(photo.photo.id);
-                } else {
-                  selected.selectedPhotoIds.add(photo.photo.id);
-                }
+              selectedPhotoIds: selectedPhotoIds,
+              onPhotoSelected: (photoId) {
+                onPhotoSelected(photoId);
               }),
         ),
       ],
+    );
+  }
+
+  Widget _buildLoading() {
+    return const Center(
+      child: CircularProgressIndicator(),
     );
   }
 }
