@@ -56,7 +56,6 @@ class _HomePageState extends State<HomePage> {
       });
     }
 
-    // TODO: check all paths
     for (var path in paths) {
       if (path.isAll) {
         continue;
@@ -96,6 +95,24 @@ class _HomePageState extends State<HomePage> {
     // PhotoManager.clearFileCache();
   }
 
+  _toggleSelectedPhoto(String id) {
+    print("toggle selected: $id");
+
+    final bool contains = selectedPhotoIds.contains(id);
+
+    if (contains) {
+      selectedPhotoIds.remove(id);
+    } else {
+      selectedPhotoIds.add(id);
+    }
+
+    if (mounted) {
+      setState(() {
+        selectedPhotoIds;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -118,15 +135,7 @@ class _HomePageState extends State<HomePage> {
           photos: _blurryPhotos,
           selectedPhotoIds: selectedPhotoIds,
           onPhotoSelected: (photoId) {
-            // var contains = p.selectedPhotoIds.contains(photo.photo.id);
-
-            //       var selected = _blurryPhotos
-            //           .firstWhere((element) => element.album.id == p.album.id);
-
-            //       if (contains) {
-            //         selected.selectedPhotoIds.remove(photo.photo.id);
-            //       } else {
-            //         selected.selectedPhotoIds.add(photo.photo.id);
+            _toggleSelectedPhoto(photoId);
           },
         ),
       ),
