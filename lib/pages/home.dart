@@ -22,6 +22,10 @@ class HomePage extends StatelessWidget {
         padding: EdgeInsets.all(kScaffoldPadding),
         child: ImageList(),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: const Icon(Icons.cleaning_services_outlined),
+      ),
     );
   }
 }
