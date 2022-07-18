@@ -183,7 +183,14 @@ Future<List<PhotoItem>> _processPhotos(
   List<PhotoItem> results = [];
 
   for (final photo in photos) {
-    var blurNum = await LaplacianBlurAnalyzer.assetBlur(photo, tempDir);
+    double? blurNum;
+
+    try {
+      blurNum = await LaplacianBlurAnalyzer.assetBlur(photo, tempDir);
+    } catch (e) {
+      debugPrint("Error trying to find blur for ${photo.title}: $e");
+    }
+
     if (blurNum == null) {
       debugPrint("Blur item is null for ${photo.title}");
       continue;

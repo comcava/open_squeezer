@@ -26,8 +26,7 @@ class HomeController {
     _loadAlbums();
   }
 
-  Future<void> dispose() async {
-    // We loaded all the photos into the cache, which will take space otherwise
+  Future<void> clearCache() async {
     await PhotoManager.clearFileCache();
   }
 

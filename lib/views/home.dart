@@ -32,13 +32,6 @@ class _HomePageState extends State<HomePage> {
     _controller.init();
   }
 
-  @override
-  dispose() {
-    _controller.dispose();
-
-    super.dispose();
-  }
-
   _confirmDelete() {
     showDialog<void>(
       context: context,
