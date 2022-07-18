@@ -80,77 +80,74 @@ class LaplacianBlurAnalyzer {
       return null;
     }
 
-    // TODO: process
+    final rawImage = await image.file;
 
-    // final rawImage = await image.file;
+    if (rawImage == null) {
+      return null;
+    }
 
-    // if (rawImage == null) {
-    //   return null;
-    // }
+    Uint8List? rawBytes = await rawImage.readAsBytes();
 
-    // Uint8List? rawBytes = await rawImage.readAsBytes();
+    print("raw image len: ${rawBytes.buffer.lengthInBytes}");
 
-    // print("raw image len: ${rawBytes.buffer.lengthInBytes}");
+    ByteData? bytes = await resizeImage(rawBytes, width: 200);
 
-    // ByteData? bytes = await resizeImage(rawBytes, width: 200);
+    rawBytes = null;
 
-    // rawBytes = null;
+    if (bytes == null) {
+      throw Exception("Couldn't resize the image");
+    }
 
-    // if (bytes == null) {
-    //   throw Exception("Couldn't resize the image");
-    // }
+    print("resize image len: ${bytes.buffer.lengthInBytes}");
 
-    // print("resize image len: ${bytes.buffer.lengthInBytes}");
+    var smallPath = await saveTempFile(bytes.buffer.asUint8List());
 
-    // var smallPath = await saveTempFile(bytes.buffer.asUint8List());
+    bytes = null;
 
-    // bytes = null;
+    Uint8List? grayBytes = await Cv2.cvtColor(
+      pathFrom: CVPathFrom.GALLERY_CAMERA,
+      pathString: smallPath,
+      outputType: Cv2.COLOR_BGR2GRAY,
+    );
 
-    // Uint8List? grayBytes = await Cv2.cvtColor(
-    //   pathFrom: CVPathFrom.GALLERY_CAMERA,
-    //   pathString: smallPath,
-    //   outputType: Cv2.COLOR_BGR2GRAY,
-    // );
+    if (grayBytes == null) {
+      throw Exception("Couldn't convert the image to grayscale");
+    }
 
-    // if (grayBytes == null) {
-    //   throw Exception("Couldn't convert the image to grayscale");
-    // }
+    print("gray bytes len: ${grayBytes.length}, ${grayBytes.lengthInBytes}");
 
-    // print("gray bytes len: ${grayBytes.length}, ${grayBytes.lengthInBytes}");
+    var grayPath = await saveTempFile(grayBytes);
 
-    // var grayPath = await saveTempFile(grayBytes);
+    grayBytes = null;
 
-    // grayBytes = null;
+    Uint8List? filteredBytes = await Cv2.laplacian(
+      pathFrom: CVPathFrom.GALLERY_CAMERA,
+      pathString: grayPath,
+      depth: 1,
+    );
 
-    // Uint8List? filteredBytes = await Cv2.laplacian(
-    //   pathFrom: CVPathFrom.GALLERY_CAMERA,
-    //   pathString: grayPath,
-    //   depth: 1,
-    // );
+    if (filteredBytes == null) {
+      return null;
+    }
 
-    // if (filteredBytes == null) {
-    //   return null;
-    // }
+    print(
+        "filtered bytes len: ${filteredBytes.length}, ${filteredBytes.lengthInBytes}");
 
-    // print(
-    //     "filtered bytes len: ${filteredBytes.length}, ${filteredBytes.lengthInBytes}");
+    var decoded = l_img.decodeImage(filteredBytes);
 
-    // var decoded = l_img.decodeImage(filteredBytes);
+    filteredBytes = null;
+    clearTempFile();
 
-    // filteredBytes = null;
-    // clearTempFile();
+    var decodedByte = decoded!.getBytes(format: l_img.Format.luminance);
 
-    // var decodedByte = decoded!.getBytes(format: l_img.Format.luminance);
+    print("decoded bytes len: ${decodedByte.length}");
 
-    // print("decoded bytes len: ${decodedByte.length}");
+    var varianceNum = variance(decodedByte);
 
-    // var varianceNum = variance(decodedByte);
-
-    // return varianceNum;
-    return 40;
+    return varianceNum;
   }
 
-// TODO: rename?
+  // TODO: rename?
   Future<List<PhotoItem>> assetBlur4Threads(
       List<AssetEntity> origPhotos) async {
     Directory tempDirectory = await getTemporaryDirectory();
@@ -158,12 +155,12 @@ class LaplacianBlurAnalyzer {
 
     // if (origPhotos.length <= 4) {
     //   // TODO: analyze all synchronously
-    //   // var result = await compute(
-    //   //   (List<AssetEntity> message) => _processPhotos(message, tempDir),
-    //   //   origPhotos,
-    //   // );
+    // var result = await compute(
+    //   (List<AssetEntity> message) => _processPhotos(message, tempDir),
+    //   origPhotos,
+    // );
 
-    //   // return result;
+    // return result;
     //   return [];
     // }
 
@@ -171,27 +168,27 @@ class LaplacianBlurAnalyzer {
 
     var allResults = await _processPhotos(origPhotos, tempDir);
 
-    // compute(
-    //   (List<AssetEntity> message) => _processPhotos(message),
-    //   origPhotos.skip(windowSize).take(windowSize).toList(),
-    // ),
-    // compute(
-    //   (List<AssetEntity> message) => _processPhotos(message),
-    //   origPhotos.skip(windowSize * 2).take(windowSize).toList(),
-    // ),
-    // compute(
-    //   (List<AssetEntity> message) => _processPhotos(message),
-    //   origPhotos.skip(windowSize * 3).toList(),
-    // ),
-    //]);
+    // // compute(
+    // //   (List<AssetEntity> message) => _processPhotos(message),
+    // //   origPhotos.skip(windowSize).take(windowSize).toList(),
+    // // ),
+    // // compute(
+    // //   (List<AssetEntity> message) => _processPhotos(message),
+    // //   origPhotos.skip(windowSize * 2).take(windowSize).toList(),
+    // // ),
+    // // compute(
+    // //   (List<AssetEntity> message) => _processPhotos(message),
+    // //   origPhotos.skip(windowSize * 3).toList(),
+    // // ),
+    // //]);
 
-    List<PhotoItem> result = List.empty(growable: true);
+    // List<PhotoItem> result = List.empty(growable: true);
 
-    // for (var r in allResults) {
-    //   result.addAll(r);
-    // }
+    // // for (var r in allResults) {
+    // //   result.addAll(r);
+    // // }
 
-    // return result;
+    // // return result;
     return allResults;
   }
 }

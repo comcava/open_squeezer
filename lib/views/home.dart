@@ -37,6 +37,10 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        if (_controller.selectedPhotoIds.isEmpty) {
+          return const AlertNoPhotosSelected();
+        }
+
         return AlertDeletePhotos(
           onYes: () async {
             await _controller.deleteSelectedPhotos();
@@ -75,6 +79,58 @@ class _HomePageState extends State<HomePage> {
         child: _HomePageBody(controller: _controller),
       ),
       floatingActionButton: actionButton,
+    );
+  }
+}
+
+class _HomePageBody extends StatelessWidget {
+  final HomeController controller;
+
+  const _HomePageBody({
+    Key? key,
+    required this.controller,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (controller.isLoading) {
+      return _buildLoading();
+    }
+
+    return ListView(
+      children: [
+        ...controller.photos.map(
+          (p) => Album(albumItem: p, controller: controller),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoading() {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+}
+
+class AlertNoPhotosSelected extends StatelessWidget {
+  const AlertNoPhotosSelected({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
+    return AlertDialog(
+      title: Text(loc.noPhotosSelected),
+      content: Text(loc.goSelectPhotos),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(loc.ok),
+        )
+      ],
     );
   }
 }
@@ -147,36 +203,6 @@ class _AlertDeletePhotosState extends State<AlertDeletePhotos> {
       title: Text(loc.alertDeletePhotosTitle),
       content: content,
       actions: actions,
-    );
-  }
-}
-
-class _HomePageBody extends StatelessWidget {
-  final HomeController controller;
-
-  const _HomePageBody({
-    Key? key,
-    required this.controller,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    if (controller.isLoading) {
-      return _buildLoading();
-    }
-
-    return ListView(
-      children: [
-        ...controller.photos.map(
-          (p) => Album(albumItem: p, controller: controller),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoading() {
-    return const Center(
-      child: CircularProgressIndicator(),
     );
   }
 }
