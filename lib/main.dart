@@ -6,7 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'config/constants.dart';
-import 'pages/home.dart';
+import 'views/home.dart';
 
 void main() {
   GoogleFonts.config.allowRuntimeFetching = false;

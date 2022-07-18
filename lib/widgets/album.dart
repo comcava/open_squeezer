@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:blur_detector/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../config/constants.dart';
@@ -16,15 +17,10 @@ const double kCheckboxSize = 25;
 
 class Album extends StatelessWidget {
   final AlbumItem albumItem;
-  final PhotoIdsSet selectedPhotoIds;
-  final Function(String photoId) onPhotoSelected;
+  final HomeController controller;
 
-  const Album({
-    Key? key,
-    required this.albumItem,
-    required this.onPhotoSelected,
-    required this.selectedPhotoIds,
-  }) : super(key: key);
+  const Album({Key? key, required this.albumItem, required this.controller})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +38,14 @@ class Album extends StatelessWidget {
               //       in a row per screen size
               children: List.generate(3, (pos) {
                 if ((pos + idx) < albumItem.photos.length) {
-                  return buildPhotoItem(albumItem.photos[pos + idx]);
+                  var photo = albumItem.photos[pos + idx];
+                  return _PhotoThumbnail(
+                    isChecked: controller.photoSelected(photo.photo.id),
+                    onPhotoSelected: (id) {
+                      controller.toggleSelectedPhoto(id);
+                    },
+                    item: photo,
+                  );
                 } else {
                   return const SizedBox(
                     width: kPhotoSize,
@@ -62,77 +65,6 @@ class Album extends StatelessWidget {
               _AlbumTitle(name: albumItem.album.name),
               ...photoRows,
             ],
-          ),
-        );
-      },
-    );
-  }
-
-  FutureBuilder<Uint8List> buildPhotoItem(PhotoItem item) {
-    return FutureBuilder<Uint8List>(
-      future: () async {
-        var data = await item.photo.thumbnailData;
-        return data!;
-      }(),
-      builder: (context, AsyncSnapshot<Uint8List> snapshot) {
-        final theme = Theme.of(context);
-
-        var photoImgSize = kPhotoSize - kPhotoPadding * 2;
-
-        if (snapshot.hasData) {
-          bool isChecked = selectedPhotoIds.contains(item.photo.id);
-
-          return GestureDetector(
-            onTap: () {
-              onPhotoSelected(item.photo.id);
-            },
-            child: Container(
-              padding: const EdgeInsets.all(kPhotoPadding),
-              width: kPhotoSize,
-              height: kPhotoSize,
-              child: Stack(
-                children: [
-                  SizedBox(
-                    height: photoImgSize,
-                    width: photoImgSize,
-                    child: Image.memory(
-                      snapshot.data!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Container(
-                      width: kCheckboxSize,
-                      height: kCheckboxSize,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(120),
-                        borderRadius: BorderRadius.circular(kSmallBorderRadius),
-                      ),
-                      child: Checkbox(
-                        value: isChecked,
-                        fillColor: MaterialStateProperty.all(
-                          theme.colorScheme.primary,
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onChanged: (newVal) {
-                          onPhotoSelected(item.photo.id);
-                        },
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(kPhotoPadding),
-          width: kPhotoSize,
-          height: kPhotoSize,
-          child: Container(
-            color: theme.colorScheme.secondaryContainer,
           ),
         );
       },
@@ -159,6 +91,109 @@ class _AlbumTitle extends StatelessWidget {
       child: Text(
         name ?? "",
         textAlign: TextAlign.start,
+      ),
+    );
+  }
+}
+
+class _PhotoThumbnail extends StatefulWidget {
+  final bool isChecked;
+  final Function(String photoId) onPhotoSelected;
+  final PhotoItem item;
+
+  const _PhotoThumbnail({
+    Key? key,
+    required this.isChecked,
+    required this.onPhotoSelected,
+    required this.item,
+  }) : super(key: key);
+
+  @override
+  State<_PhotoThumbnail> createState() => _PhotoThumbnailState();
+}
+
+class _PhotoThumbnailState extends State<_PhotoThumbnail> {
+  Widget? _imageWidget;
+
+  @override
+  initState() {
+    super.initState();
+    _fetchImage();
+  }
+
+  _fetchImage() async {
+    var data = await widget.item.photo.thumbnailData;
+
+    if (data == null) {
+      return;
+    }
+
+    _imageWidget ??= Image.memory(
+      data,
+      fit: BoxFit.cover,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (_imageWidget == null) {
+      return _buildPlaceholder(theme);
+    }
+
+    var photoPadding = widget.isChecked ? kPhotoPadding * 4 : kPhotoPadding;
+
+    return GestureDetector(
+      onTap: () {
+        widget.onPhotoSelected(widget.item.photo.id);
+      },
+      child: AnimatedContainer(
+        duration: kDefaultAnimationDuration,
+        padding: EdgeInsets.all(photoPadding),
+        width: kPhotoSize,
+        height: kPhotoSize,
+        child: Stack(
+          children: [
+            SizedBox(
+              height: kPhotoSize,
+              width: kPhotoSize,
+              child: _imageWidget,
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Container(
+                width: kCheckboxSize,
+                height: kCheckboxSize,
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(120),
+                  borderRadius: BorderRadius.circular(kSmallBorderRadius),
+                ),
+                child: Checkbox(
+                  value: widget.isChecked,
+                  fillColor: MaterialStateProperty.all(
+                    theme.colorScheme.primary,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  onChanged: (newVal) {
+                    widget.onPhotoSelected(widget.item.photo.id);
+                  },
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Container _buildPlaceholder(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(kPhotoPadding),
+      width: kPhotoSize,
+      height: kPhotoSize,
+      child: Container(
+        color: theme.colorScheme.secondaryContainer,
       ),
     );
   }

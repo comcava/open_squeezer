@@ -56,6 +56,8 @@ const double kDefaultPadding = 15;
 
 const double kSmallBorderRadius = 5;
 
+const Duration kDefaultAnimationDuration = Duration(milliseconds: 300);
+
 // Business logic related
 
 /// Threshold after which a photo will be considered blurry
