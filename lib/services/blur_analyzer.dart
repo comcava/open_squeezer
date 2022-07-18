@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
+
+import 'package:isolate_handler/isolate_handler.dart';
 
 import 'package:opencv_4/factory/pathfrom.dart';
 import 'package:opencv_4/opencv_4.dart';
@@ -60,12 +63,12 @@ class LaplacianBlurAnalyzer {
   }
 
   /// Calculate how blurry an image is
-  static Future<double?> assetBlur({required String? image_title, , required String tempDir}) async {
-    // if (image_typeInt == AssetType.video.index) {
-    //   return null;
-    // }
+  static Future<double?> assetBlur(AssetEntity image, String tempDir) async {
+    if (image.typeInt == AssetType.video.index) {
+      return null;
+    }
 
-    var imgName = image_title ?? const Uuid().v4();
+    var imgName = image.title ?? const Uuid().v4();
 
     Future<String> saveTempFile(Uint8List data) async {
       String tempPath = "$tempDir/$imgName.png";
@@ -155,7 +158,7 @@ class LaplacianBlurAnalyzer {
     // var varianceNum = variance(decodedByte);
 
     // return varianceNum;
-    return 40.0;
+    return 40;
   }
 
   Future<List<PhotoItem>> assetBlur4Threads(
@@ -177,10 +180,15 @@ class LaplacianBlurAnalyzer {
     var windowSize = (origPhotos.length / 4).floor();
 
     var allResults = await // await Future.wait([
-        compute(
-      (Map message) => _processPhotos(message["photos"], message["tempDir"]),
-      {"photos": origPhotos.take(windowSize).toList(), "tempDir": tempDir},
-    );
+        (() async {
+      spawnIsolate(
+        {"photos": origPhotos.take(windowSize).toList(), "tempDir": tempDir},
+        (message) async {
+          return await _processPhotos(message["photos"], message["tempDir"]);
+        },
+      );
+    })();
+
     // compute(
     //   (List<AssetEntity> message) => _processPhotos(message),
     //   origPhotos.skip(windowSize).take(windowSize).toList(),
@@ -223,4 +231,35 @@ Future<List<PhotoItem>> _processPhotos(
   }
 
   return results;
+}
+
+Future<dynamic> spawnIsolate(
+  dynamic message,
+  dynamic Function(dynamic) payloadFut,
+) async {
+  final isolates = IsolateHandler();
+
+  final stream = StreamController();
+
+  void entryPoint(Map<String, dynamic> context) {
+    final messenger = HandledIsolate.initialize(context);
+
+    // Triggered every time data is received from the main isolate.
+    messenger.listen((msg) async {
+      var res = await payloadFut(msg);
+      messenger.send(res);
+    });
+  }
+
+  String name = "blur_analyzer_${const Uuid().v4()}";
+
+  isolates.spawn<dynamic>(entryPoint,
+      name: name,
+      onReceive: (msg) {
+        isolates.kill(name);
+        stream.add(msg);
+      },
+      onInitialized: () => isolates.send(message, to: name));
+
+  return await stream.stream.first;
 }
