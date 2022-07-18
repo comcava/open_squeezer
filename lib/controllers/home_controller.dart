@@ -41,6 +41,8 @@ class HomeController {
       return;
     }
 
+    _photos.clear();
+
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList();
 
     // TODO: page size to constant
@@ -103,8 +105,16 @@ class HomeController {
   /// Delete selected photos and clear the selected photos buffer.
   /// This cannot be undone
   Future<void> deleteSelectedPhotos() async {
-// TODO: delete selected photos
+    if (selectedPhotoIds.isEmpty) {
+      return;
+    }
 
-    await Future.delayed(Duration(seconds: 2));
+    await PhotoManager.editor.deleteWithIds(
+      selectedPhotoIds.toList(),
+    );
+
+    selectedPhotoIds.clear();
+
+    _loadAlbums();
   }
 }

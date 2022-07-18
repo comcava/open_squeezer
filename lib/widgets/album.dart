@@ -132,6 +132,9 @@ class _PhotoThumbnailState extends State<_PhotoThumbnail> {
       data,
       fit: BoxFit.cover,
     );
+
+    if (!mounted) return;
+    setState(() {});
   }
 
   @override
