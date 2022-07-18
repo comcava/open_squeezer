@@ -10,6 +10,7 @@ import '../services/blur_analyzer.dart';
 const double kPhotoSize = 100;
 const double kPhotoPadding = 2.5;
 const double kLowerSize = 20;
+const double kCheckboxSize = 25;
 
 class Album extends StatelessWidget {
   final AlbumItem albumItem;
@@ -27,6 +28,8 @@ class Album extends StatelessWidget {
         for (var idx = 0; idx < albumItem.photos.length; idx += photosPerRow) {
           photoRows.add(Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            // TODO: different number of images
+            //       in a row per screen size
             children: List.generate(3, (pos) {
               if ((pos + idx) < albumItem.photos.length) {
                 return buildPhotoItem(albumItem.photos[pos + idx]);
@@ -55,27 +58,47 @@ class Album extends StatelessWidget {
     return FutureBuilder<Uint8List>(
       future: () async {
         var data = await item.photo.thumbnailData;
-        // (const ThumbnailSize.square(150));
         return data!;
       }(),
       builder: (context, AsyncSnapshot<Uint8List> snapshot) {
+        final theme = Theme.of(context);
+
         if (snapshot.hasData) {
           return Container(
             padding: const EdgeInsets.all(kPhotoPadding),
-            child: Column(children: [
-              SizedBox(
-                height: kPhotoSize,
-                width: kPhotoSize,
-                child: Image.memory(
-                  snapshot.data!,
-                  fit: BoxFit.cover,
+            width: kPhotoSize,
+            height: kPhotoSize,
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: kPhotoSize,
+                  width: kPhotoSize,
+                  child: Image.memory(
+                    snapshot.data!,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              Container(
-                height: kLowerSize,
-                child: Text("v: ${item.varianceNum}"),
-              )
-            ]),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Container(
+                    width: kCheckboxSize,
+                    height: kCheckboxSize,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withAlpha(120),
+                      borderRadius: BorderRadius.circular(kSmallBorderRadius),
+                    ),
+                    child: Checkbox(
+                      value: false,
+                      fillColor: MaterialStateProperty.all(
+                        theme.colorScheme.primary,
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onChanged: (newVal) {},
+                    ),
+                  ),
+                )
+              ],
+            ),
           );
         }
 
