@@ -1,3 +1,5 @@
+import 'package:after_layout/after_layout.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -31,18 +33,19 @@ class ImageList extends StatefulWidget {
   State<ImageList> createState() => _ImageListState();
 }
 
-// TODO: from settings
-const double blurryBefore = 100;
-
-class _ImageListState extends State<ImageList> {
+class _ImageListState extends State<ImageList>
+    with AfterLayoutMixin<ImageList> {
   final List<AlbumItem> _blurryPhotos = List.empty(growable: true);
 
-  bool _isLoading = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+  }
 
+  @override
+  void afterFirstLayout(context) {
     _loadAlbums();
   }
 
@@ -79,24 +82,17 @@ class _ImageListState extends State<ImageList> {
     for (var path in paths.take(1)) {
       var totalPages = (path.assetCount / pageSize).ceil();
 
-      List<PhotoItem> photos = List.empty(growable: true);
+      List<PhotoItem> allPhotos = List.empty(growable: true);
 
       var page = 0;
+      // TODO: iterate over all pages
       // for (var page = 0; page <= totalPages; page++) {
       var pageList = await path.getAssetListPaged(page: page, size: pageSize);
+      // TODO: add 'processing {album name}'
+
       print("got page list: $pageList");
+      var photos = await LaplacianBlurAnalyzer().assetBlur4Threads(pageList);
 
-      for (var listItem in pageList) {
-        var blurNum = await LaplacianBlurAnalyzer.assetBlur(listItem);
-        if (blurNum == null) {
-          debugPrint("Blur item is null for ${listItem.title}");
-          continue;
-        }
-
-        if (blurNum <= blurryBefore) {
-          photos.add(PhotoItem(photo: listItem, varianceNum: 40));
-        }
-      }
       // }
 
       _blurryPhotos.add(

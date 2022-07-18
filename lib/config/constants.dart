@@ -53,3 +53,8 @@ final darkTheme = FlexThemeData.dark(
 
 const double kScaffoldPadding = 5;
 const double kDefaultPadding = 15;
+
+// Business logic related
+
+/// Threshold after which a photo will be considered blurry
+const double blurryBefore = 100;

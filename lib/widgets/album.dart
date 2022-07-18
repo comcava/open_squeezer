@@ -5,24 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:blur_detector/config/constants.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../services/blur_analyzer.dart';
+
 const double kPhotoSize = 100;
 const double kPhotoPadding = 2.5;
 const double kLowerSize = 20;
-
-// TODO: better names
-class AlbumItem {
-  final AssetPathEntity album;
-  final List<PhotoItem> photos;
-
-  AlbumItem({required this.album, required this.photos});
-}
-
-class PhotoItem {
-  final AssetEntity photo;
-  final double varianceNum;
-
-  const PhotoItem({required this.photo, required this.varianceNum});
-}
 
 class Album extends StatelessWidget {
   final AlbumItem albumItem;
