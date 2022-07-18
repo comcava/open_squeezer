@@ -1,12 +1,9 @@
-import 'dart:math';
-import 'dart:typed_data';
-
-import 'package:blur_detector/services/blur_analyzer.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../services/blur_analyzer.dart';
 import '../widgets/album.dart';
 import '../config/constants.dart';
 
@@ -40,6 +37,8 @@ const double blurryBefore = 100;
 class _ImageListState extends State<ImageList> {
   final List<AlbumItem> _blurryPhotos = List.empty(growable: true);
 
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -54,7 +53,8 @@ class _ImageListState extends State<ImageList> {
       // Granted.
     } else {
       print("Permission denied");
-      // TODO: show toast
+      // TODO: show permission denied screen
+
       // Limited(iOS) or Rejected, use `==` for more precise judgements.
       // You can call `PhotoManager.openSetting()`    to open settings for further steps.
       PhotoManager.openSetting();
@@ -65,8 +65,15 @@ class _ImageListState extends State<ImageList> {
 
     print("got paths: $paths");
 
-    // TODO: larger page size
+    // TODO: page size to constant
     final pageSize = 50;
+
+    _isLoading = true;
+    if (mounted) {
+      setState(() {
+        _isLoading;
+      });
+    }
 
     // TODO: check all paths
     for (var path in paths.take(1)) {
@@ -80,15 +87,15 @@ class _ImageListState extends State<ImageList> {
       print("got page list: $pageList");
 
       for (var listItem in pageList) {
-        // var blurNum = await LaplacianBlurAnalyzer.assetBlur(listItem);
-        // if (blurNum == null) {
-        //   debugPrint("Blur item is null for ${listItem.title}");
-        //   continue;
-        // }
+        var blurNum = await LaplacianBlurAnalyzer.assetBlur(listItem);
+        if (blurNum == null) {
+          debugPrint("Blur item is null for ${listItem.title}");
+          continue;
+        }
 
-        // if (blurNum <= blurryBefore) {
-        photos.add(PhotoItem(photo: listItem, varianceNum: 40));
-        // }
+        if (blurNum <= blurryBefore) {
+          photos.add(PhotoItem(photo: listItem, varianceNum: 40));
+        }
       }
       // }
 
@@ -97,7 +104,12 @@ class _ImageListState extends State<ImageList> {
       );
     }
 
-    setState(() {});
+    _isLoading = true;
+    if (mounted) {
+      setState(() {
+        _isLoading;
+      });
+    }
 
     // TODO: after done, clear cache
     // PhotoManager.clearFileCache();
@@ -105,6 +117,12 @@ class _ImageListState extends State<ImageList> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     return ListView(
       children: [
         ..._blurryPhotos.map(
