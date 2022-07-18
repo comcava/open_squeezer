@@ -1,3 +1,7 @@
 {
-  "appName": "Детектор размытых изображений"
+  "appName": "Open Squeezer",
+  "alertDeletePhotosTitle": "Точно удалить?",
+  "alertDeletePhotosBody": "Это действие необратимо. Если вы удалите фотографии, они больше не будут доступны",
+  "yes": "Да",
+  "no": "Нет"
 }

@@ -89,8 +89,6 @@ class HomeController {
   }
 
   toggleSelectedPhoto(String id) {
-    print("toggle selected: $id");
-
     final bool contains = photoSelected(id);
 
     if (contains) {
@@ -100,5 +98,13 @@ class HomeController {
     }
 
     onChanged();
+  }
+
+  /// Delete selected photos and clear the selected photos buffer.
+  /// This cannot be undone
+  Future<void> deleteSelectedPhotos() async {
+// TODO: delete selected photos
+
+    await Future.delayed(Duration(seconds: 2));
   }
 }

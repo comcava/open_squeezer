@@ -32,6 +32,27 @@ class _HomePageState extends State<HomePage> {
     _controller.init();
   }
 
+  _confirmDelete() {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDeletePhotos(
+          onYes: () async {
+            await _controller.deleteSelectedPhotos();
+
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+          onNo: () async {
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -41,7 +62,7 @@ class _HomePageState extends State<HomePage> {
     if (!_controller.isLoading) {
       actionButton = FloatingActionButton(
         onPressed: () {
-          setState(() {});
+          _confirmDelete();
         },
         child: const Icon(Icons.cleaning_services_outlined),
       );
@@ -54,6 +75,78 @@ class _HomePageState extends State<HomePage> {
         child: _HomePageBody(controller: _controller),
       ),
       floatingActionButton: actionButton,
+    );
+  }
+}
+
+class AlertDeletePhotos extends StatefulWidget {
+  final VoidCallback onYes;
+  final VoidCallback onNo;
+
+  const AlertDeletePhotos({
+    Key? key,
+    required this.onYes,
+    required this.onNo,
+  }) : super(key: key);
+
+  @override
+  State<AlertDeletePhotos> createState() => _AlertDeletePhotosState();
+}
+
+class _AlertDeletePhotosState extends State<AlertDeletePhotos> {
+  bool isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    Widget content;
+    List<Widget> actions = [];
+
+    if (isLoading) {
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Padding(
+            padding: EdgeInsets.all(kDefaultPadding),
+            child: CircularProgressIndicator(),
+          ),
+        ],
+      );
+    } else {
+      content = Text(loc.alertDeletePhotosBody);
+      actions = [
+        TextButton(
+          child: Text(
+            loc.no,
+            style: theme.textTheme.bodyMedium,
+          ),
+          onPressed: () async {
+            widget.onNo();
+          },
+        ),
+        TextButton(
+          child: Text(
+            loc.yes,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.red,
+            ),
+          ),
+          onPressed: () {
+            widget.onYes();
+            setState(() {
+              isLoading = true;
+            });
+          },
+        ),
+      ];
+    }
+
+    return AlertDialog(
+      title: Text(loc.alertDeletePhotosTitle),
+      content: content,
+      actions: actions,
     );
   }
 }
