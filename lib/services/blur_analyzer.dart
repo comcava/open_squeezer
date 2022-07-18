@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -180,14 +181,12 @@ class LaplacianBlurAnalyzer {
     var windowSize = (origPhotos.length / 4).floor();
 
     var allResults = await // await Future.wait([
-        (() async {
-      spawnIsolate(
-        {"photos": origPhotos.take(windowSize).toList(), "tempDir": tempDir},
-        (message) async {
-          return await _processPhotos(message["photos"], message["tempDir"]);
-        },
-      );
-    })();
+        spawnIsolate(
+      {"photos": origPhotos.take(windowSize).toList(), "tempDir": tempDir},
+      (message) async {
+        return await _processPhotos(message["photos"], message["tempDir"]);
+      },
+    );
 
     // compute(
     //   (List<AssetEntity> message) => _processPhotos(message),
@@ -251,15 +250,22 @@ Future<dynamic> spawnIsolate(
     });
   }
 
-  String name = "blur_analyzer_${const Uuid().v4()}";
+  int nameId = Random().nextInt(100000);
+  String name = "blur_analyzer_$nameId";
 
-  isolates.spawn<dynamic>(entryPoint,
-      name: name,
-      onReceive: (msg) {
-        isolates.kill(name);
-        stream.add(msg);
-      },
-      onInitialized: () => isolates.send(message, to: name));
+  print("isolate name: '$name'");
+
+  isolates.spawn<dynamic>(
+    entryPoint,
+    name: name,
+    onReceive: (msg) {
+      isolates.kill(name);
+      stream.add(msg);
+    },
+    onInitialized: () {
+      isolates.send(message, to: name);
+    },
+  );
 
   return await stream.stream.first;
 }
