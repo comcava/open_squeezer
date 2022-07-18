@@ -9,7 +9,7 @@ import '../services/blur_analyzer.dart';
 
 const double kPhotoSize = 100;
 const double kPhotoPadding = 2.5;
-const double kLowerSize = 20;
+
 const double kCheckboxSize = 25;
 
 class Album extends StatelessWidget {
@@ -27,14 +27,17 @@ class Album extends StatelessWidget {
 
         for (var idx = 0; idx < albumItem.photos.length; idx += photosPerRow) {
           photoRows.add(Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             // TODO: different number of images
             //       in a row per screen size
             children: List.generate(3, (pos) {
               if ((pos + idx) < albumItem.photos.length) {
                 return buildPhotoItem(albumItem.photos[pos + idx]);
               } else {
-                return Container();
+                return const SizedBox(
+                  width: kPhotoSize,
+                  height: kPhotoSize,
+                );
               }
             }),
           ));
@@ -42,7 +45,7 @@ class Album extends StatelessWidget {
 
         return SizedBox(
           height: _AlbumTitle.height +
-              photoRows.length * (kPhotoSize + kLowerSize + kPhotoPadding * 2),
+              photoRows.length * (kPhotoSize + kPhotoPadding * 2),
           child: Column(
             children: [
               _AlbumTitle(name: albumItem.album.name),

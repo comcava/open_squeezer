@@ -94,6 +94,8 @@ class LaplacianBlurAnalyzer {
       return null;
     }
 
+    // TODO: process
+
     // final rawImage = await image.file;
 
     // if (rawImage == null) {
@@ -181,8 +183,6 @@ class LaplacianBlurAnalyzer {
     // var windowSize = (origPhotos.length / 4).floor();
 
     var allResults = await _processPhotos(origPhotos, tempDir);
-
-    ;
 
     // compute(
     //   (List<AssetEntity> message) => _processPhotos(message),
