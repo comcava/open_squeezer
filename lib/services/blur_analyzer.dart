@@ -167,26 +167,22 @@ class LaplacianBlurAnalyzer {
     Directory tempDirectory = await getTemporaryDirectory();
     String tempDir = tempDirectory.path;
 
-    if (origPhotos.length <= 4) {
-      // TODO: analyze all synchronously
-      // var result = await compute(
-      //   (List<AssetEntity> message) => _processPhotos(message, tempDir),
-      //   origPhotos,
-      // );
+    // if (origPhotos.length <= 4) {
+    //   // TODO: analyze all synchronously
+    //   // var result = await compute(
+    //   //   (List<AssetEntity> message) => _processPhotos(message, tempDir),
+    //   //   origPhotos,
+    //   // );
 
-      // return result;
-      return [];
-    }
+    //   // return result;
+    //   return [];
+    // }
 
-    var windowSize = (origPhotos.length / 4).floor();
+    // var windowSize = (origPhotos.length / 4).floor();
 
-    var allResults = await // await Future.wait([
-        spawnIsolate(
-      {"photos": origPhotos.take(windowSize).toList(), "tempDir": tempDir},
-      (message) async {
-        return await _processPhotos(message["photos"], message["tempDir"]);
-      },
-    );
+    var allResults = await _processPhotos(origPhotos, tempDir);
+
+    ;
 
     // compute(
     //   (List<AssetEntity> message) => _processPhotos(message),
@@ -240,7 +236,7 @@ Future<dynamic> spawnIsolate(
 
   final stream = StreamController();
 
-  void entryPoint(Map<String, dynamic> context) {
+  void entryPoint(dynamic context) {
     final messenger = HandledIsolate.initialize(context);
 
     // Triggered every time data is received from the main isolate.
