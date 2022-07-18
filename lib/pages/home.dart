@@ -70,8 +70,6 @@ class _ImageListState extends State<ImageList>
 
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList();
 
-    print("got paths: $paths");
-
     // TODO: page size to constant
     final pageSize = 50;
 
@@ -83,25 +81,29 @@ class _ImageListState extends State<ImageList>
     }
 
     // TODO: check all paths
-    for (var path in paths.take(1)) {
+    for (var path in paths) {
+      if (path.isAll) {
+        continue;
+      }
+
       var totalPages = (path.assetCount / pageSize).ceil();
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
-      var page = 0;
-      // TODO: iterate over all pages
-      // for (var page = 0; page <= totalPages; page++) {
-      var pageList = await path.getAssetListPaged(page: page, size: pageSize);
-      // TODO: add 'processing {album name}'
+      for (var page = 0; page <= totalPages; page++) {
+        var pageList = await path.getAssetListPaged(page: page, size: pageSize);
+        // TODO: add 'processing {album name}'
 
-      print("got page list: $pageList");
-      var photos = await LaplacianBlurAnalyzer().assetBlur4Threads(pageList);
+        print("got page list: $pageList");
+        var photos = await LaplacianBlurAnalyzer().assetBlur4Threads(pageList);
+        allPhotos.addAll(photos);
+      }
 
-      // }
-
-      _blurryPhotos.add(
-        AlbumItem(album: path, photos: photos),
-      );
+      if (allPhotos.isNotEmpty) {
+        _blurryPhotos.add(
+          AlbumItem(album: path, photos: allPhotos),
+        );
+      }
     }
 
     _isLoading = false;
