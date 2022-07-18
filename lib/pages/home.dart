@@ -39,7 +39,7 @@ class ImageList extends StatefulWidget {
 
 class _ImageListState extends State<ImageList>
     with AfterLayoutMixin<ImageList> {
-  final List<AlbumItem> _blurryPhotos = List.empty(growable: true);
+  List<AlbumItem> _blurryPhotos = List.empty(growable: true);
 
   bool _isLoading = true;
 
@@ -101,7 +101,10 @@ class _ImageListState extends State<ImageList>
 
       if (allPhotos.isNotEmpty) {
         _blurryPhotos.add(
-          AlbumItem(album: path, photos: allPhotos),
+          AlbumItem(
+            album: path,
+            photos: allPhotos,
+          ),
         );
       }
     }
@@ -129,8 +132,19 @@ class _ImageListState extends State<ImageList>
       children: [
         ..._blurryPhotos.map(
           (p) => Album(
-            albumItem: p,
-          ),
+              albumItem: p,
+              onPhotoSelected: (photo) {
+                var contains = p.selectedPhotoIds.contains(photo.photo.id);
+
+                var selected = _blurryPhotos
+                    .firstWhere((element) => element.album.id == p.album.id);
+
+                if (contains) {
+                  selected.selectedPhotoIds.remove(photo.photo.id);
+                } else {
+                  selected.selectedPhotoIds.add(photo.photo.id);
+                }
+              }),
         ),
       ],
     );

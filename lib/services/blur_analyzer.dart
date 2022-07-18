@@ -23,15 +23,23 @@ import '../config/constants.dart';
 class AlbumItem {
   final AssetPathEntity album;
   final List<PhotoItem> photos;
+  final Set<String> selectedPhotoIds;
 
-  AlbumItem({required this.album, required this.photos});
+  AlbumItem({
+    required this.album,
+    required this.photos,
+    this.selectedPhotoIds = const {},
+  });
 }
 
 class PhotoItem {
   final AssetEntity photo;
   final double varianceNum;
 
-  const PhotoItem({required this.photo, required this.varianceNum});
+  const PhotoItem({
+    required this.photo,
+    required this.varianceNum,
+  });
 }
 
 /// Analyzes if the image is blurry, using open_cv's laplacian

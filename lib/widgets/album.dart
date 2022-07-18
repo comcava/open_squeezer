@@ -14,8 +14,13 @@ const double kCheckboxSize = 25;
 
 class Album extends StatelessWidget {
   final AlbumItem albumItem;
+  final Function(PhotoItem photo) onPhotoSelected;
 
-  const Album({Key? key, required this.albumItem}) : super(key: key);
+  const Album({
+    Key? key,
+    required this.albumItem,
+    required this.onPhotoSelected,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -66,41 +71,52 @@ class Album extends StatelessWidget {
       builder: (context, AsyncSnapshot<Uint8List> snapshot) {
         final theme = Theme.of(context);
 
+        var photoImgSize = kPhotoSize - kPhotoPadding * 2;
+
         if (snapshot.hasData) {
-          return Container(
-            padding: const EdgeInsets.all(kPhotoPadding),
-            width: kPhotoSize,
-            height: kPhotoSize,
-            child: Stack(
-              children: [
-                SizedBox(
-                  height: kPhotoSize,
-                  width: kPhotoSize,
-                  child: Image.memory(
-                    snapshot.data!,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Container(
-                    width: kCheckboxSize,
-                    height: kCheckboxSize,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withAlpha(120),
-                      borderRadius: BorderRadius.circular(kSmallBorderRadius),
+          bool isChecked = albumItem.selectedPhotoIds.contains(item.photo.id);
+
+          return GestureDetector(
+            onTap: () {
+              onPhotoSelected(item);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(kPhotoPadding),
+              width: kPhotoSize,
+              height: kPhotoSize,
+              child: Stack(
+                children: [
+                  SizedBox(
+                    height: photoImgSize,
+                    width: photoImgSize,
+                    child: Image.memory(
+                      snapshot.data!,
+                      fit: BoxFit.cover,
                     ),
-                    child: Checkbox(
-                      value: false,
-                      fillColor: MaterialStateProperty.all(
-                        theme.colorScheme.primary,
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      width: kCheckboxSize,
+                      height: kCheckboxSize,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(120),
+                        borderRadius: BorderRadius.circular(kSmallBorderRadius),
                       ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      onChanged: (newVal) {},
+                      child: Checkbox(
+                        value: isChecked,
+                        fillColor: MaterialStateProperty.all(
+                          theme.colorScheme.primary,
+                        ),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onChanged: (newVal) {
+                          onPhotoSelected(item);
+                        },
+                      ),
                     ),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           );
         }
@@ -109,7 +125,9 @@ class Album extends StatelessWidget {
           padding: const EdgeInsets.all(kPhotoPadding),
           width: kPhotoSize,
           height: kPhotoSize,
-          color: Colors.grey,
+          child: Container(
+            color: theme.colorScheme.secondaryContainer,
+          ),
         );
       },
     );
