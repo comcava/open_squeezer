@@ -26,6 +26,11 @@ class HomeController {
     _loadAlbums();
   }
 
+  Future<void> dispose() async {
+    // We loaded all the photos into the cache, which will take space otherwise
+    await PhotoManager.clearFileCache();
+  }
+
   _loadAlbums() async {
     final PermissionState _ps = await PhotoManager.requestPermissionExtend();
 
@@ -45,9 +50,6 @@ class HomeController {
 
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList();
 
-    // TODO: page size to constant
-    final pageSize = 50;
-
     _isLoading = true;
     onChanged();
 
@@ -56,16 +58,17 @@ class HomeController {
         continue;
       }
 
-      var totalPages = (path.assetCount / pageSize).ceil();
+      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
       for (var page = 0; page <= totalPages; page++) {
-        var pageList = await path.getAssetListPaged(page: page, size: pageSize);
+        var pageList =
+            await path.getAssetListPaged(page: page, size: kPhotoPageSize);
+
         // TODO: add 'processing {album name}'
 
-        print("got page list: $pageList");
-        var photos = await LaplacianBlurAnalyzer().assetBlur4Threads(pageList);
+        var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
         allPhotos.addAll(photos);
       }
 
@@ -81,9 +84,6 @@ class HomeController {
 
     _isLoading = false;
     onChanged();
-
-    // TODO: after done, clear cache
-    // PhotoManager.clearFileCache();
   }
 
   bool photoSelected(String id) {

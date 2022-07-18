@@ -114,8 +114,6 @@ class LaplacianBlurAnalyzer {
       throw Exception("Couldn't convert the image to grayscale");
     }
 
-    print("gray bytes len: ${grayBytes.length}, ${grayBytes.lengthInBytes}");
-
     var grayPath = await saveTempFile(grayBytes);
 
     grayBytes = null;
@@ -129,9 +127,6 @@ class LaplacianBlurAnalyzer {
     if (filteredBytes == null) {
       return null;
     }
-
-    print(
-        "filtered bytes len: ${filteredBytes.length}, ${filteredBytes.lengthInBytes}");
 
     var decoded = l_img.decodeImage(filteredBytes);
 
@@ -147,49 +142,39 @@ class LaplacianBlurAnalyzer {
     return varianceNum;
   }
 
-  // TODO: rename?
-  Future<List<PhotoItem>> assetBlur4Threads(
+  Future<List<PhotoItem>> assetBlur4Futures(
       List<AssetEntity> origPhotos) async {
     Directory tempDirectory = await getTemporaryDirectory();
     String tempDir = tempDirectory.path;
 
-    // if (origPhotos.length <= 4) {
-    //   // TODO: analyze all synchronously
-    // var result = await compute(
-    //   (List<AssetEntity> message) => _processPhotos(message, tempDir),
-    //   origPhotos,
-    // );
+    var windowSize = (origPhotos.length / 4).floor();
 
-    // return result;
-    //   return [];
-    // }
+    var allResults = await Future.wait([
+      (() async {
+        var message = origPhotos.take(windowSize).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+      (() async {
+        var message = origPhotos.take(windowSize).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+      (() async {
+        var message = origPhotos.skip(windowSize * 2).take(windowSize).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+      (() async {
+        var message = origPhotos.skip(windowSize * 3).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+    ]);
 
-    // var windowSize = (origPhotos.length / 4).floor();
+    List<PhotoItem> result = List.empty(growable: true);
 
-    var allResults = await _processPhotos(origPhotos, tempDir);
+    for (var r in allResults) {
+      result.addAll(r);
+    }
 
-    // // compute(
-    // //   (List<AssetEntity> message) => _processPhotos(message),
-    // //   origPhotos.skip(windowSize).take(windowSize).toList(),
-    // // ),
-    // // compute(
-    // //   (List<AssetEntity> message) => _processPhotos(message),
-    // //   origPhotos.skip(windowSize * 2).take(windowSize).toList(),
-    // // ),
-    // // compute(
-    // //   (List<AssetEntity> message) => _processPhotos(message),
-    // //   origPhotos.skip(windowSize * 3).toList(),
-    // // ),
-    // //]);
-
-    // List<PhotoItem> result = List.empty(growable: true);
-
-    // // for (var r in allResults) {
-    // //   result.addAll(r);
-    // // }
-
-    // // return result;
-    return allResults;
+    return result;
   }
 }
 
@@ -232,8 +217,6 @@ Future<dynamic> spawnIsolate(
 
   int nameId = Random().nextInt(100000);
   String name = "blur_analyzer_$nameId";
-
-  print("isolate name: '$name'");
 
   isolates.spawn<dynamic>(
     entryPoint,
