@@ -1,4 +1,3 @@
-import 'package:blur_detector/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../config/constants.dart';
@@ -38,7 +37,7 @@ class Album extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(photosPerRow, (pos) {
-                if ((pos + idx) < photosPerRow) {
+                if ((pos + idx) < itemsLength) {
                   return SizedBox(
                     width: kPhotoSize,
                     height: kPhotoSize,
@@ -178,6 +177,119 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   onChanged: (newVal) {
                     widget.onPhotoSelected(widget.item.photo.id);
+                  },
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Container _buildPlaceholder(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(kPhotoPadding),
+      width: kPhotoSize,
+      height: kPhotoSize,
+      child: Container(
+        color: theme.colorScheme.secondaryContainer,
+      ),
+    );
+  }
+}
+
+class VideoThumbnail extends StatefulWidget {
+  final bool isChecked;
+  final Function(String id) onSelected;
+  final VideoItem item;
+
+  const VideoThumbnail({
+    Key? key,
+    required this.isChecked,
+    required this.onSelected,
+    required this.item,
+  }) : super(key: key);
+  @override
+  State<VideoThumbnail> createState() => _VideoThumbnailState();
+}
+
+class _VideoThumbnailState extends State<VideoThumbnail> {
+  Widget? _imageWidget;
+
+  @override
+  initState() {
+    super.initState();
+    _fetchImage();
+  }
+
+  _fetchImage() async {
+    var data = await widget.item.video.thumbnailData;
+
+    if (data == null) {
+      return;
+    }
+
+    _imageWidget ??= Image.memory(
+      data,
+      fit: BoxFit.cover,
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    if (_imageWidget == null) {
+      return _buildPlaceholder(theme);
+    }
+
+    var photoPadding = widget.isChecked ? kPhotoPadding * 4 : kPhotoPadding;
+
+    return GestureDetector(
+      onTap: () {
+        widget.onSelected(widget.item.video.id);
+      },
+      child: AnimatedContainer(
+        duration: kDefaultAnimationDuration,
+        padding: EdgeInsets.all(photoPadding),
+        width: kPhotoSize,
+        height: kPhotoSize,
+        child: Stack(
+          children: [
+            SizedBox(
+              height: kPhotoSize,
+              width: kPhotoSize,
+              child: _imageWidget,
+            ),
+            Align(
+              alignment: Alignment.topLeft,
+              child: Icon(
+                Icons.play_arrow,
+                color: Colors.grey.shade200,
+                size: kCheckboxSize,
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Container(
+                width: kCheckboxSize,
+                height: kCheckboxSize,
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(120),
+                  borderRadius: BorderRadius.circular(kSmallBorderRadius),
+                ),
+                child: Checkbox(
+                  value: widget.isChecked,
+                  fillColor: MaterialStateProperty.all(
+                    theme.colorScheme.primary,
+                  ),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  onChanged: (newVal) {
+                    widget.onSelected(widget.item.video.id);
                   },
                 ),
               ),

@@ -26,7 +26,12 @@ class HomeController {
 
   Future<void> init() async {
     await _checkGalleryPermissions();
+
+    _isLoading = true;
+    onChanged();
     await Future.wait([_loadAlbums(), _loadVideos()]);
+    _isLoading = false;
+    onChanged();
   }
 
   Future<void> clearCache() async {
@@ -91,10 +96,7 @@ class HomeController {
     _photos.clear();
 
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
-        hasAll: false, type: RequestType.video);
-
-    _isLoading = true;
-    onChanged();
+        hasAll: false, type: RequestType.image);
 
     for (var path in paths) {
       if (path.isAll) {
@@ -105,7 +107,7 @@ class HomeController {
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
-      for (var page = 0; page <= totalPages; page++) {
+      for (var page = 0; page < totalPages; page++) {
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
@@ -124,9 +126,6 @@ class HomeController {
         );
       }
     }
-
-    _isLoading = false;
-    onChanged();
   }
 
   static Future<void> openSettings() async {

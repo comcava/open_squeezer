@@ -122,6 +122,20 @@ class _HomePageBody extends StatelessWidget {
 
     return ListView(
       children: [
+        // TODO: localize
+        Album(
+            name: "Videos",
+            itemsLength: controller.videos.length,
+            builder: (index) {
+              var video = controller.videos[index];
+              return VideoThumbnail(
+                isChecked: controller.photoSelected(video.video.id),
+                onSelected: (id) {
+                  controller.toggleSelectedPhoto(id);
+                },
+                item: video,
+              );
+            }),
         ...controller.photos.map(
           (p) => Album(
               name: p.album.name,
