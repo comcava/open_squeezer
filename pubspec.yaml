@@ -45,6 +45,7 @@ dependencies:
   photo_manager: ^2.1.4
   uuid: ^3.0.6
   isolate_handler: ^1.0.1
+  flutter_fgbg: ^0.2.0
 
 dev_dependencies:
   flutter_test:

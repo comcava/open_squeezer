@@ -11,7 +11,7 @@ class HomeController {
   PhotoIdsSet selectedPhotoIds = {};
 
   bool get isLoading => _isLoading;
-  bool _isLoading = true;
+  bool _isLoading = false;
   bool get noPermissions => _noPermissions;
   bool _noPermissions = false;
 
@@ -20,20 +20,31 @@ class HomeController {
 
   HomeController({required this.onChanged});
 
-  init() {
-    _loadAlbums();
+  Future<void> init() async {
+    await _checkGalleryPermissions();
+    await _loadAlbums();
   }
 
   Future<void> clearCache() async {
     await PhotoManager.clearFileCache();
+    print("Cache cleared");
   }
 
-  _loadAlbums() async {
+  Future<void> _checkGalleryPermissions() async {
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
 
     if (!ps.isAuth) {
       _noPermissions = true;
       debugPrint("Permission denied");
+    } else {
+      _noPermissions = false;
+    }
+
+    onChanged();
+  }
+
+  _loadAlbums() async {
+    if (_noPermissions) {
       return;
     }
 

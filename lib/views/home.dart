@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:blur_detector/widgets/no_permissions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 import '../widgets/album.dart';
 import '../config/constants.dart';
@@ -15,6 +18,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late HomeController _controller;
+  late StreamSubscription<FGBGType> _bgSubscription;
 
   @override
   void initState() {
@@ -27,6 +31,23 @@ class _HomePageState extends State<HomePage> {
     });
 
     _controller.init();
+
+    _bgSubscription = FGBGEvents.stream.listen((FGBGType event) {
+      if (event == FGBGType.foreground) {
+        if (_controller.noPermissions) {
+          _controller.init();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _bgSubscription.cancel();
+
+    _controller.clearCache();
+
+    super.dispose();
   }
 
   _confirmDelete() {
