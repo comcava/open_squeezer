@@ -12,6 +12,11 @@ const double kPhotoPadding = 2.5;
 /// Size of a checkbox
 const double kCheckboxSize = 25;
 
+final BoxDecoration containerDecoration = BoxDecoration(
+  color: Colors.black.withAlpha(120),
+  borderRadius: BorderRadius.circular(kSmallBorderRadius),
+);
+
 class Album extends StatelessWidget {
   final String name;
   final int itemsLength;
@@ -165,10 +170,7 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
               child: Container(
                 width: kCheckboxSize,
                 height: kCheckboxSize,
-                decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(120),
-                  borderRadius: BorderRadius.circular(kSmallBorderRadius),
-                ),
+                decoration: containerDecoration,
                 child: Checkbox(
                   value: widget.isChecked,
                   fillColor: MaterialStateProperty.all(
@@ -216,11 +218,13 @@ class VideoThumbnail extends StatefulWidget {
 
 class _VideoThumbnailState extends State<VideoThumbnail> {
   Widget? _imageWidget;
+  String? _lenText;
 
   @override
   initState() {
     super.initState();
     _fetchImage();
+    _genLenText();
   }
 
   _fetchImage() async {
@@ -237,6 +241,35 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
 
     if (!mounted) return;
     setState(() {});
+  }
+
+  _genLenText() {
+    var lenBytes = widget.item.lengthBytes;
+
+    if (lenBytes == null) return;
+
+    const kbBytes = 1024;
+    const mbBytes = 1024 * kbBytes;
+    const gbBytes = 1024 * mbBytes;
+
+    var lenGb = lenBytes / gbBytes;
+    if (lenGb > 1) {
+      _lenText = "${lenGb.toStringAsFixed(2)} gb";
+      return;
+    }
+    var lenMb = lenBytes / mbBytes;
+    if (lenGb > 1) {
+      _lenText = "${lenMb.toStringAsFixed(2)} mb";
+      return;
+    }
+
+    var lenKb = lenBytes / kbBytes;
+    if (lenGb > 1) {
+      _lenText = "${lenKb.toStringAsFixed(2)} kb";
+      return;
+    }
+
+    _lenText = "$lenBytes b";
   }
 
   @override
@@ -267,10 +300,25 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
             ),
             Align(
               alignment: Alignment.topLeft,
-              child: Icon(
-                Icons.play_arrow,
-                color: Colors.grey.shade200,
-                size: kCheckboxSize,
+              child: Container(
+                decoration: containerDecoration,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.play_arrow,
+                      color: Colors.grey.shade200,
+                      size: kCheckboxSize,
+                    ),
+                    if (_lenText != null)
+                      Text(
+                        _lenText!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade200,
+                        ),
+                      )
+                  ],
+                ),
               ),
             ),
             Align(
@@ -278,10 +326,7 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
               child: Container(
                 width: kCheckboxSize,
                 height: kCheckboxSize,
-                decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(120),
-                  borderRadius: BorderRadius.circular(kSmallBorderRadius),
-                ),
+                decoration: containerDecoration,
                 child: Checkbox(
                   value: widget.isChecked,
                   fillColor: MaterialStateProperty.all(

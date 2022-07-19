@@ -112,6 +112,8 @@ class _HomePageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     if (controller.noPermissions) {
       return const NoPermissions();
     }
@@ -122,9 +124,8 @@ class _HomePageBody extends StatelessWidget {
 
     return ListView(
       children: [
-        // TODO: localize
         Album(
-            name: "Videos",
+            name: loc.videos,
             itemsLength: controller.videos.length,
             builder: (index) {
               var video = controller.videos[index];
