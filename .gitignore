@@ -49,4 +49,8 @@ app.*.map.json
 # TODO: remove, these images are a few mb
 assets/test
 
+# native_opencv downloaded and extracted files
 scripts/download
+plugins/native_opencv/android/src/main/jniLibs
+plugins/native_opencv/include
+plugins/native_opencv/ios/opencv2.framework
