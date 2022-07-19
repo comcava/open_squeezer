@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:blur_detector/widgets/no_permissions.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 import '../widgets/album.dart';
+import '../widgets/no_permissions.dart';
 import '../config/constants.dart';
 import '../controllers/home_controller.dart';
 
@@ -60,13 +61,14 @@ class _HomePageState extends State<HomePage> {
         return AlertDeletePhotos(
           onYes: () async {
             await _controller.deleteSelectedPhotos();
+            await _controller.clearCache();
 
             if (mounted) {
-              Navigator.of(context).pop();
+              AutoRouter.of(context).navigateNamed("clear-done-page");
             }
           },
           onNo: () async {
-            Navigator.of(context).pop();
+            AutoRouter.of(context).pop();
           },
         );
       },
@@ -88,19 +90,13 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        await _controller.clearCache();
-        return true;
-      },
-      child: Scaffold(
-        appBar: AppBar(title: Text(loc.appName)),
-        body: Padding(
-          padding: const EdgeInsets.all(kScaffoldPadding),
-          child: _HomePageBody(controller: _controller),
-        ),
-        floatingActionButton: actionButton,
+    return Scaffold(
+      appBar: AppBar(title: Text(loc.appName)),
+      body: Padding(
+        padding: const EdgeInsets.all(kScaffoldPadding),
+        child: _HomePageBody(controller: _controller),
       ),
+      floatingActionButton: actionButton,
     );
   }
 }
