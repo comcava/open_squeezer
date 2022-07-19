@@ -1,3 +1,4 @@
+import 'package:blur_detector/widgets/no_permissions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -59,7 +60,7 @@ class _HomePageState extends State<HomePage> {
 
     Widget? actionButton;
 
-    if (!_controller.isLoading) {
+    if (!_controller.isLoading || _controller.noPermissions) {
       actionButton = FloatingActionButton(
         onPressed: () {
           _confirmDelete();
@@ -89,6 +90,10 @@ class _HomePageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (controller.noPermissions) {
+      return const NoPermissions();
+    }
+
     if (controller.isLoading) {
       return _buildLoading();
     }

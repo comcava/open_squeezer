@@ -8,12 +8,12 @@ import '../services/blur_analyzer.dart';
 class HomeController {
   final List<AlbumItem> _photos = List.empty(growable: true);
   List<AlbumItem> get photos => _photos;
-
   PhotoIdsSet selectedPhotoIds = {};
 
   bool get isLoading => _isLoading;
-
   bool _isLoading = true;
+  bool get noPermissions => _noPermissions;
+  bool _noPermissions = false;
 
   /// Is called when a value was changed (such as isLoading)
   VoidCallback onChanged;
@@ -32,12 +32,8 @@ class HomeController {
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
 
     if (!ps.isAuth) {
-      print("Permission denied");
-      // TODO: show permission denied screen
-
-      // Limited(iOS) or Rejected, use `==` for more precise judgements.
-      // You can call `PhotoManager.openSetting()`    to open settings for further steps.
-      PhotoManager.openSetting();
+      _noPermissions = true;
+      debugPrint("Permission denied");
       return;
     }
 
@@ -79,6 +75,10 @@ class HomeController {
 
     _isLoading = false;
     onChanged();
+  }
+
+  static Future<void> openSettings() async {
+    await PhotoManager.openSetting();
   }
 
   bool photoSelected(String id) {

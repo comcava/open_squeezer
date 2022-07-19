@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 final lightTheme = FlexThemeData.light(
   colors: const FlexSchemeColor(
-    primary: Color(0xff9befff),
+    primary: Color.fromARGB(255, 76, 206, 232),
     primaryContainer: Color(0xffeaddff),
     secondary: Color(0xff328bb3),
     secondaryContainer: Color(0xffe8def8),
@@ -30,7 +30,7 @@ final lightTheme = FlexThemeData.light(
 
 final darkTheme = FlexThemeData.dark(
   colors: const FlexSchemeColor(
-    primary: Color(0xff9fc9ff),
+    primary: Color.fromARGB(255, 150, 180, 220),
     primaryContainer: Color(0xff00325b),
     secondary: Color(0xffffb59d),
     secondaryContainer: Color(0xff872100),
