@@ -14,23 +14,25 @@
 #endif
 
 #if defined(__GNUC__)
-    // Attributes to prevent 'unused' function from being removed and to make it visible
-    #define FUNCTION_ATTRIBUTE __attribute__((visibility("default"))) __attribute__((used))
+// Attributes to prevent 'unused' function from being removed and to make it visible
+#define FUNCTION_ATTRIBUTE __attribute__((visibility("default"))) __attribute__((used))
 #elif defined(_MSC_VER)
-    // Marking a function for export
-    #define FUNCTION_ATTRIBUTE __declspec(dllexport)
+// Marking a function for export
+#define FUNCTION_ATTRIBUTE __declspec(dllexport)
 #endif
 
 using namespace cv;
 using namespace std;
 
-long long int get_now() {
+long long int get_now()
+{
     return chrono::duration_cast<std::chrono::milliseconds>(
-            chrono::system_clock::now().time_since_epoch()
-    ).count();
+               chrono::system_clock::now().time_since_epoch())
+        .count();
 }
 
-void platform_log(const char *fmt, ...) {
+void platform_log(const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
 #ifdef __ANDROID__
@@ -48,31 +50,54 @@ void platform_log(const char *fmt, ...) {
 }
 
 // Avoiding name mangling
-extern "C" {
+extern "C"
+{
     FUNCTION_ATTRIBUTE
-    const char* version() {
+    const char *version()
+    {
         return CV_VERSION;
     }
 
     FUNCTION_ATTRIBUTE
-    void process_image(char* inputImagePath, char* outputImagePath) {
+    float laplacian_blur(char *inputImagePath)
+    {
         long long start = get_now();
-        
-        Mat input = imread(inputImagePath, IMREAD_GRAYSCALE);
-        Mat threshed, withContours;
 
-        vector<vector<Point>> contours;
-        vector<Vec4i> hierarchy;
-        
-        adaptiveThreshold(input, threshed, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 77, 6);
-        findContours(threshed, contours, hierarchy, RETR_TREE, CHAIN_APPROX_TC89_L1);
-        
-        cvtColor(threshed, withContours, COLOR_GRAY2BGR);
-        drawContours(withContours, contours, -1, Scalar(0, 255, 0), 4);
-        
-        imwrite(outputImagePath, withContours);
-        
+        Mat input = imread(inputImagePath, IMREAD_COLOR);
+
+        // TODO: remove platform log
+        platform_log("loaded %s", inputImagePath);
+
+        const int croppedRows = 200;
+        int croppedTimes = input.rows / croppedRows;
+        Size croppedSize = Size(croppedRows, input.cols / croppedTimes);
+
+        Mat resized;
+
+        cv::resize(input, resized, croppedSize);
+        delete[] & input;
+        platform_log("resize done");
+
+        Mat discolored;
+
+        cv::cvtColor(resized, discolored, COLOR_BGR2GRAY);
+        delete[] & resized;
+        platform_log("resized done");
+
+        Mat laplacian;
+        cv::Laplacian(discolored, laplacian, 1);
+        delete[] & discolored;
+
+        platform_log("laplacian done");
+
+        Scalar scalarMean = cv::mean(laplacian);
+        float mean = scalarMean.val[0];
+
+        platform_log("mean done");
+
         int evalInMillis = static_cast<int>(get_now() - start);
-        platform_log("Processing done in %dms\n", evalInMillis);
+        platform_log("Processing %s done in %dms\n", inputImagePath, evalInMillis);
+
+        return mean;
     }
 }
