@@ -72,21 +72,24 @@ extern "C"
         int croppedTimes = input.rows / croppedRows;
         Size croppedSize = Size(croppedRows, input.cols / croppedTimes);
 
-        Mat resized;
+        Mat resized = Mat(croppedSize, input.type());
 
+        platform_log("before resize: %d %d", croppedRows, input.cols / croppedTimes);
+
+        // TODO: panicked here
         cv::resize(input, resized, croppedSize);
-        delete[] & input;
+        // delete[] & input;
         platform_log("resize done");
 
         Mat discolored;
 
         cv::cvtColor(resized, discolored, COLOR_BGR2GRAY);
-        delete[] & resized;
+        // delete[] & resized;
         platform_log("resized done");
 
         Mat laplacian;
-        cv::Laplacian(discolored, laplacian, 1);
-        delete[] & discolored;
+        cv::Laplacian(discolored, laplacian, 0);
+        // delete[] & discolored;
 
         platform_log("laplacian done");
 
