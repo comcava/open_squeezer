@@ -9,5 +9,7 @@
   "ok": "Ok",
   "weNeedGallery": "We need to access the gallery",
   "weNeedGalleryBody": "We need a permission to access the gallery to analyze your photos and videos and find the blurry ones",
-  "grantAccess": "Grant access"
+  "grantAccess": "Grant access",
+  "allClean": "All clean",
+  "cleanAgain": "Clean again"
 }

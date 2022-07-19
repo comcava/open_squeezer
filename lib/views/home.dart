@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:blur_detector/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -64,7 +65,7 @@ class _HomePageState extends State<HomePage> {
             await _controller.clearCache();
 
             if (mounted) {
-              AutoRouter.of(context).navigateNamed("clear-done-page");
+              AutoRouter.of(context).replaceAll([const ClearDoneRoute()]);
             }
           },
           onNo: () async {
@@ -84,7 +85,9 @@ class _HomePageState extends State<HomePage> {
     if (!_controller.isLoading || _controller.noPermissions) {
       actionButton = FloatingActionButton(
         onPressed: () {
-          _confirmDelete();
+          // TODO: remove
+          AutoRouter.of(context).replaceAll([const ClearDoneRoute()]);
+          // _confirmDelete();
         },
         child: const Icon(Icons.cleaning_services_outlined),
       );

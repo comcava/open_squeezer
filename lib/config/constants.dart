@@ -58,6 +58,8 @@ const double kSmallBorderRadius = 5;
 
 const Duration kDefaultAnimationDuration = Duration(milliseconds: 300);
 
+const double kLargeIconSize = 100;
+
 // Business logic related
 
 /// Threshold after which a photo will be considered blurry
