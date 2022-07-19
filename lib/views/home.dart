@@ -45,8 +45,6 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _bgSubscription.cancel();
 
-    _controller.clearCache();
-
     super.dispose();
   }
 
@@ -90,13 +88,19 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: Text(loc.appName)),
-      body: Padding(
-        padding: const EdgeInsets.all(kScaffoldPadding),
-        child: _HomePageBody(controller: _controller),
+    return WillPopScope(
+      onWillPop: () async {
+        await _controller.clearCache();
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(loc.appName)),
+        body: Padding(
+          padding: const EdgeInsets.all(kScaffoldPadding),
+          child: _HomePageBody(controller: _controller),
+        ),
+        floatingActionButton: actionButton,
       ),
-      floatingActionButton: actionButton,
     );
   }
 }
