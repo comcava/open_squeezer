@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 
-import '../widgets/photo_album.dart';
+import '../widgets/album.dart';
 import '../widgets/no_permissions.dart';
 import '../config/constants.dart';
 import '../controllers/home_controller.dart';
@@ -123,7 +123,7 @@ class _HomePageBody extends StatelessWidget {
     return ListView(
       children: [
         ...controller.photos.map(
-          (p) => PhotoAlbum(albumItem: p, controller: controller),
+          (p) => Album(albumItem: p, controller: controller),
         ),
       ],
     );
