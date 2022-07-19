@@ -3,11 +3,11 @@ import 'package:photo_manager/photo_manager.dart';
 typedef PhotoIdsSet = Set<String>;
 
 // TODO: rename to PhotoAlbumItem
-class AlbumItem {
+class PhotoAlbumItem {
   final AssetPathEntity album;
   final List<PhotoItem> photos;
 
-  AlbumItem({
+  PhotoAlbumItem({
     required this.album,
     required this.photos,
   });

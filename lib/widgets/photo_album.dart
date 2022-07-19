@@ -13,11 +13,12 @@ const double kPhotoPadding = 2.5;
 /// Size of a checkbox
 const double kCheckboxSize = 25;
 
-class Album extends StatelessWidget {
-  final AlbumItem albumItem;
+class PhotoAlbum extends StatelessWidget {
+  final PhotoAlbumItem albumItem;
   final HomeController controller;
 
-  const Album({Key? key, required this.albumItem, required this.controller})
+  const PhotoAlbum(
+      {Key? key, required this.albumItem, required this.controller})
       : super(key: key);
 
   @override

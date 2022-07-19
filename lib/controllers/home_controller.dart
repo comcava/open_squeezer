@@ -6,8 +6,8 @@ import '../domain/album.dart';
 import '../services/blur_analyzer.dart';
 
 class HomeController {
-  final List<AlbumItem> _photos = List.empty(growable: true);
-  List<AlbumItem> get photos => _photos;
+  final List<PhotoAlbumItem> _photos = List.empty(growable: true);
+  List<PhotoAlbumItem> get photos => _photos;
 
   final List<VideoItem> _videos = List.empty(growable: true);
   List<VideoItem> get videos => _videos;
@@ -117,7 +117,7 @@ class HomeController {
 
       if (allPhotos.isNotEmpty) {
         _photos.add(
-          AlbumItem(
+          PhotoAlbumItem(
             album: path,
             photos: allPhotos,
           ),
