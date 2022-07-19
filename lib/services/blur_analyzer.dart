@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:blur_detector/services/opencv_ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
@@ -135,40 +136,49 @@ class LaplacianBlurAnalyzer {
     Directory tempDirectory = await getTemporaryDirectory();
     String tempDir = tempDirectory.path;
 
-    var windowSize = (origPhotos.length / 4).floor();
+    // var windowSize = (origPhotos.length / 4).floor();
 
-    var allResults = await Future.wait([
-      //   (() async {
-      //     var message = origPhotos.skip(windowSize);
-      //     return await _processPhotos(message, tempDir);
-      //   })(),
-      (() async {
-        var message = origPhotos;
-        return await _processPhotos(message, tempDir);
-      })(),
-      // (() async {
-      //   var message = origPhotos.take(windowSize).toList();
-      //   return await _processPhotos(message, tempDir);
-      // })(),
-      // (() async {
-      //   var message = origPhotos.skip(windowSize).take(windowSize).toList();
-      //   return await _processPhotos(message, tempDir);
-      // })(),
-      // (() async {
-      //   var message = origPhotos.skip(windowSize * 2).take(windowSize).toList();
-      //   return await _processPhotos(message, tempDir);
-      // })(),
-      // (() async {
-      //   var message = origPhotos.skip(windowSize * 3).toList();
-      //   return await _processPhotos(message, tempDir);
-      // })(),
-    ]);
+    // var allResults = await Future.wait([
+    //   //   (() async {
+    //   //     var message = origPhotos.skip(windowSize);
+    //   //     return await _processPhotos(message, tempDir);
+    //   //   })(),
+    //   (() async {
+    //     var message = origPhotos;
+    //     return await _processPhotos(message, tempDir);
+    //   })(),
+    //   // (() async {
+    //   //   var message = origPhotos.take(windowSize).toList();
+    //   //   return await _processPhotos(message, tempDir);
+    //   // })(),
+    //   // (() async {
+    //   //   var message = origPhotos.skip(windowSize).take(windowSize).toList();
+    //   //   return await _processPhotos(message, tempDir);
+    //   // })(),
+    //   // (() async {
+    //   //   var message = origPhotos.skip(windowSize * 2).take(windowSize).toList();
+    //   //   return await _processPhotos(message, tempDir);
+    //   // })(),
+    //   // (() async {
+    //   //   var message = origPhotos.skip(windowSize * 3).toList();
+    //   //   return await _processPhotos(message, tempDir);
+    //   // })(),
+    // ]);
 
     List<PhotoItem> result = List.empty(growable: true);
 
-    for (var r in allResults) {
-      result.addAll(r);
-    }
+    var item = origPhotos[0];
+    var file = await item.file;
+
+    print("will analyze '${file!.path}'");
+
+    var mean = laplacianBlur(file.path);
+
+    print("got mean: $mean");
+
+    // for (var r in allResults) {
+    //   result.addAll(r);
+    // }
 
     return result;
   }

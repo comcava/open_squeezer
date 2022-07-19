@@ -117,13 +117,17 @@ class HomeController {
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
-      for (var page = 0; page < totalPages; page++) {
-        var pageList =
-            await path.getAssetListPaged(page: page, size: kPhotoPageSize);
+      // for (var page = 0; page < totalPages; page++) {
+      // TODO: fix
+      var pageList =
+          await path.getAssetListPaged(page: 0, size: kPhotoPageSize);
 
-        var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
-        allPhotos.addAll(photos);
-      }
+      var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
+      allPhotos.addAll(photos);
+
+// TODO; not return
+      return;
+      // }
 
       if (allPhotos.isNotEmpty) {
         _photos.add(

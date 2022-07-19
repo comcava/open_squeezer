@@ -205,7 +205,7 @@ packages:
     source: hosted
     version: "0.0.2"
   ffi:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: ffi
       url: "https://pub.dartlang.org"
@@ -401,6 +401,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  native_opencv:
+    dependency: "direct main"
+    description:
+      path: "plugins/native_opencv"
+      relative: true
+    source: path
+    version: "0.0.1"
   opencv_4:
     dependency: "direct main"
     description:

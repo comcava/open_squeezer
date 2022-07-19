@@ -48,7 +48,7 @@ dependencies:
   auto_route: ^4.2.1
   native_opencv:
     path: plugins/native_opencv
-  ffi: ^0.2.0
+  ffi: ^2.0.1
 
 dev_dependencies:
   flutter_test:

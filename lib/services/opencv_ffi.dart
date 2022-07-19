@@ -27,7 +27,7 @@ String opencvVersion() {
   return versionStr.toDartString();
 }
 
-double processImage(String inputPath) {
+double laplacianBlur(String inputPath) {
   var inputPathStr = inputPath.toNativeUtf8();
   var value = _laplacianBlur(inputPathStr);
 
