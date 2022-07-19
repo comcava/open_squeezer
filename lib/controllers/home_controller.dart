@@ -88,7 +88,7 @@ class HomeController {
     }
 
     _videos.sort(
-      (v1, v2) => (v1.lengthBytes ?? 0).compareTo(v2.lengthBytes ?? 0),
+      (v1, v2) => (v2.lengthBytes ?? 0).compareTo(v1.lengthBytes ?? 0),
     );
   }
 

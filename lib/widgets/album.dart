@@ -254,18 +254,18 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
 
     var lenGb = lenBytes / gbBytes;
     if (lenGb > 1) {
-      _lenText = "${lenGb.toStringAsFixed(2)} gb";
+      _lenText = "${lenGb.toStringAsFixed(1)} gb";
       return;
     }
     var lenMb = lenBytes / mbBytes;
-    if (lenGb > 1) {
-      _lenText = "${lenMb.toStringAsFixed(2)} mb";
+    if (lenMb > 1) {
+      _lenText = "${lenMb.round()} mb";
       return;
     }
 
     var lenKb = lenBytes / kbBytes;
-    if (lenGb > 1) {
-      _lenText = "${lenKb.toStringAsFixed(2)} kb";
+    if (lenKb > 1) {
+      _lenText = "${lenKb.round()} kb";
       return;
     }
 
@@ -275,6 +275,8 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    _genLenText();
 
     if (_imageWidget == null) {
       return _buildPlaceholder(theme);
@@ -311,10 +313,14 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
                       size: kCheckboxSize,
                     ),
                     if (_lenText != null)
-                      Text(
-                        _lenText!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade200,
+                      Padding(
+                        // Icon before already has padding
+                        padding: const EdgeInsets.only(right: 5),
+                        child: Text(
+                          _lenText!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade200,
+                          ),
                         ),
                       )
                   ],
