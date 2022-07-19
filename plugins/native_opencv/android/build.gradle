@@ -37,7 +37,7 @@ android {
     }
 
     sourceSets {
-        // main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += 'src/main/kotlin'
         main {
             jniLibs.srcDirs = ["libs"]
         }
@@ -56,6 +56,10 @@ android {
                 arguments "-DANDROID_STL=c++_shared"
             }
         }
+    }
+
+    lintOptions {
+        disable 'InvalidPackage'
     }
 
     externalNativeBuild {
