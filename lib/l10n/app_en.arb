@@ -1,3 +1,10 @@
 {
-  "appName": "Blur detector"
+  "appName": "Open Squeezer",
+  "alertDeletePhotosTitle": "Confirm deletion?",
+  "alertDeletePhotosBody": "This action is irreversible. If you delete the photos, they will no longer be available",
+  "yes": "Yes",
+  "no": "No",
+  "noPhotosSelected": "No photos selected",
+  "goSelectPhotos": "Select some photos by tapping on them, then tap this button to delete",
+  "ok": "Ok"
 }

@@ -6,7 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'config/constants.dart';
-import 'pages/home.dart';
+import 'views/home.dart';
 
 void main() {
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -15,6 +15,8 @@ void main() {
     final license = await rootBundle.loadString('assets/fonts/license.txt');
     yield LicenseEntryWithLineBreaks(['Fonts'], license);
   });
+
+  WidgetsFlutterBinding.ensureInitialized();
 
   runApp(const MyApp());
 }
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Blur detector',
+      title: 'Open Squeezer',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: lightTheme,

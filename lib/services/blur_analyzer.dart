@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:isolate_handler/isolate_handler.dart';
 
 import 'package:opencv_4/factory/pathfrom.dart';
 import 'package:opencv_4/opencv_4.dart';
@@ -12,10 +15,10 @@ import 'package:fast_image_resizer/fast_image_resizer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as l_img;
 
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../config/constants.dart';
+import '../domain/album.dart';
 
 /// Analyzes if the image is blurry, using open_cv's laplacian
 class LaplacianBlurAnalyzer {
@@ -47,16 +50,15 @@ class LaplacianBlurAnalyzer {
   }
 
   /// Calculate how blurry an image is
-  static Future<double?> assetBlur(AssetEntity image) async {
+  static Future<double?> assetBlur(AssetEntity image, String tempDir) async {
     if (image.typeInt == AssetType.video.index) {
       return null;
     }
 
-    Directory tempDir = await getTemporaryDirectory();
     var imgName = image.title ?? const Uuid().v4();
 
     Future<String> saveTempFile(Uint8List data) async {
-      String tempPath = "${tempDir.path}/$imgName.png";
+      String tempPath = "$tempDir/$imgName.png";
 
       var file = await File(tempPath).writeAsBytes(data);
 
@@ -66,7 +68,7 @@ class LaplacianBlurAnalyzer {
     }
 
     clearTempFile() {
-      String tempPath = "${tempDir.path}/$imgName.png";
+      String tempPath = "$tempDir/$imgName.png";
       File(tempPath).delete();
     }
 
@@ -112,8 +114,6 @@ class LaplacianBlurAnalyzer {
       throw Exception("Couldn't convert the image to grayscale");
     }
 
-    print("gray bytes len: ${grayBytes.length}, ${grayBytes.lengthInBytes}");
-
     var grayPath = await saveTempFile(grayBytes);
 
     grayBytes = null;
@@ -128,9 +128,6 @@ class LaplacianBlurAnalyzer {
       return null;
     }
 
-    print(
-        "filtered bytes len: ${filteredBytes.length}, ${filteredBytes.lengthInBytes}");
-
     var decoded = l_img.decodeImage(filteredBytes);
 
     filteredBytes = null;
@@ -144,4 +141,101 @@ class LaplacianBlurAnalyzer {
 
     return varianceNum;
   }
+
+  Future<List<PhotoItem>> assetBlur4Futures(
+      List<AssetEntity> origPhotos) async {
+    Directory tempDirectory = await getTemporaryDirectory();
+    String tempDir = tempDirectory.path;
+
+    var windowSize = (origPhotos.length / 4).floor();
+
+    var allResults = await Future.wait([
+      (() async {
+        var message = origPhotos.take(windowSize).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+      (() async {
+        var message = origPhotos.skip(windowSize).take(windowSize).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+      (() async {
+        var message = origPhotos.skip(windowSize * 2).take(windowSize).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+      (() async {
+        var message = origPhotos.skip(windowSize * 3).toList();
+        return await _processPhotos(message, tempDir);
+      })(),
+    ]);
+
+    List<PhotoItem> result = List.empty(growable: true);
+
+    for (var r in allResults) {
+      result.addAll(r);
+    }
+
+    return result;
+  }
+}
+
+Future<List<PhotoItem>> _processPhotos(
+    List<AssetEntity> photos, String tempDir) async {
+  List<PhotoItem> results = [];
+
+  for (final photo in photos) {
+    double? blurNum;
+
+    try {
+      blurNum = await LaplacianBlurAnalyzer.assetBlur(photo, tempDir);
+    } catch (e) {
+      debugPrint("Error trying to find blur for ${photo.title}: $e");
+    }
+
+    if (blurNum == null) {
+      debugPrint("Blur item is null for ${photo.title}");
+      continue;
+    }
+
+    if (blurNum <= blurryBefore) {
+      results.add(PhotoItem(photo: photo, varianceNum: blurNum));
+    }
+  }
+
+  return results;
+}
+
+Future<dynamic> spawnIsolate(
+  dynamic message,
+  dynamic Function(dynamic) payloadFut,
+) async {
+  final isolates = IsolateHandler();
+
+  final stream = StreamController();
+
+  void entryPoint(dynamic context) {
+    final messenger = HandledIsolate.initialize(context);
+
+    // Triggered every time data is received from the main isolate.
+    messenger.listen((msg) async {
+      var res = await payloadFut(msg);
+      messenger.send(res);
+    });
+  }
+
+  int nameId = Random().nextInt(100000);
+  String name = "blur_analyzer_$nameId";
+
+  isolates.spawn<dynamic>(
+    entryPoint,
+    name: name,
+    onReceive: (msg) {
+      isolates.kill(name);
+      stream.add(msg);
+    },
+    onInitialized: () {
+      isolates.send(message, to: name);
+    },
+  );
+
+  return await stream.stream.first;
 }
