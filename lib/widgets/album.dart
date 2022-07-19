@@ -84,11 +84,13 @@ class _AlbumTitle extends StatelessWidget {
   double height(BuildContext context) {
     final theme = Theme.of(context);
 
+    var titleTheme = theme.textTheme.headlineSmall;
+
     return
         // from padding
         kDefaultPadding * 2 +
-            // 16 is the default font size
-            (theme.textTheme.headlineSmall?.fontSize ?? 16) * 2;
+            // assume 16 is the default font size
+            (titleTheme?.fontSize ?? 16) * (titleTheme?.height ?? 1);
   }
 
   @override
