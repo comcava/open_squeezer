@@ -14,11 +14,16 @@ const double kPhotoPadding = 2.5;
 const double kCheckboxSize = 25;
 
 class Album extends StatelessWidget {
-  final PhotoAlbumItem albumItem;
-  final HomeController controller;
+  final String name;
+  final int itemsLength;
+  final Widget Function(int index) builder;
 
-  const Album({Key? key, required this.albumItem, required this.controller})
-      : super(key: key);
+  const Album({
+    Key? key,
+    required this.name,
+    required this.itemsLength,
+    required this.builder,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,21 +33,16 @@ class Album extends StatelessWidget {
 
         var photosPerRow = (constraints.maxWidth / kPhotoSize).floor();
 
-        for (var idx = 0; idx < albumItem.photos.length; idx += photosPerRow) {
+        for (var idx = 0; idx < itemsLength; idx += photosPerRow) {
           photoRows.add(
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              // TODO: different number of images
-              //       in a row per screen size
-              children: List.generate(3, (pos) {
-                if ((pos + idx) < albumItem.photos.length) {
-                  var photo = albumItem.photos[pos + idx];
-                  return _PhotoThumbnail(
-                    isChecked: controller.photoSelected(photo.photo.id),
-                    onPhotoSelected: (id) {
-                      controller.toggleSelectedPhoto(id);
-                    },
-                    item: photo,
+              children: List.generate(photosPerRow, (pos) {
+                if ((pos + idx) < photosPerRow) {
+                  return SizedBox(
+                    width: kPhotoSize,
+                    height: kPhotoSize,
+                    child: builder(pos + idx),
                   );
                 } else {
                   return const SizedBox(
@@ -60,7 +60,7 @@ class Album extends StatelessWidget {
               photoRows.length * (kPhotoSize + kPhotoPadding * 2),
           child: Column(
             children: [
-              _AlbumTitle(name: albumItem.album.name),
+              _AlbumTitle(name: name),
               ...photoRows,
             ],
           ),
@@ -94,12 +94,12 @@ class _AlbumTitle extends StatelessWidget {
   }
 }
 
-class _PhotoThumbnail extends StatefulWidget {
+class PhotoThumbnail extends StatefulWidget {
   final bool isChecked;
   final Function(String photoId) onPhotoSelected;
   final PhotoItem item;
 
-  const _PhotoThumbnail({
+  const PhotoThumbnail({
     Key? key,
     required this.isChecked,
     required this.onPhotoSelected,
@@ -107,10 +107,10 @@ class _PhotoThumbnail extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<_PhotoThumbnail> createState() => _PhotoThumbnailState();
+  State<PhotoThumbnail> createState() => _PhotoThumbnailState();
 }
 
-class _PhotoThumbnailState extends State<_PhotoThumbnail> {
+class _PhotoThumbnailState extends State<PhotoThumbnail> {
   Widget? _imageWidget;
 
   @override

@@ -123,7 +123,20 @@ class _HomePageBody extends StatelessWidget {
     return ListView(
       children: [
         ...controller.photos.map(
-          (p) => Album(albumItem: p, controller: controller),
+          (p) => Album(
+              name: p.album.name,
+              itemsLength: p.photos.length,
+              builder: (index) {
+                var photo = p.photos[index];
+
+                return PhotoThumbnail(
+                  isChecked: controller.photoSelected(photo.photo.id),
+                  onPhotoSelected: (id) {
+                    controller.toggleSelectedPhoto(id);
+                  },
+                  item: photo,
+                );
+              }),
         ),
       ],
     );
