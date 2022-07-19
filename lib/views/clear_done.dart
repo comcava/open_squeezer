@@ -1,4 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:blur_detector/config/constants.dart';
+import 'package:blur_detector/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -29,7 +31,9 @@ class ClearDonePage extends StatelessWidget {
                 ),
                 const SizedBox(height: kDefaultPadding * 4),
                 OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    AutoRouter.of(context).replaceAll([const HomeRoute()]);
+                  },
                   icon: const Icon(Icons.refresh),
                   label: Text(loc.cleanAgain),
                 )
