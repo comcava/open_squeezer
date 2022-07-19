@@ -8,6 +8,10 @@ import '../services/blur_analyzer.dart';
 class HomeController {
   final List<AlbumItem> _photos = List.empty(growable: true);
   List<AlbumItem> get photos => _photos;
+
+  final List<VideoItem> _videos = List.empty(growable: true);
+  List<VideoItem> get videos => _videos;
+
   PhotoIdsSet selectedPhotoIds = {};
 
   bool get isLoading => _isLoading;
@@ -22,12 +26,12 @@ class HomeController {
 
   Future<void> init() async {
     await _checkGalleryPermissions();
-    await _loadAlbums();
+    await Future.wait([_loadAlbums(), _loadVideos()]);
   }
 
   Future<void> clearCache() async {
     await PhotoManager.clearFileCache();
-    print("Cache cleared");
+    debugPrint("Cache cleared");
   }
 
   Future<void> _checkGalleryPermissions() async {
@@ -43,14 +47,51 @@ class HomeController {
     onChanged();
   }
 
-  _loadAlbums() async {
+  Future<void> _loadVideos() async {
+    if (_noPermissions) {
+      return;
+    }
+
+    if (_noPermissions) {
+      return;
+    }
+
+    _videos.clear();
+
+    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
+      type: RequestType.video,
+      onlyAll: true,
+    );
+
+    for (final path in paths) {
+      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+
+      for (var page = 0; page <= totalPages; page++) {
+        var videos =
+            await path.getAssetListPaged(page: page, size: kPhotoPageSize);
+
+        for (var video in videos) {
+          var videoFile = await video.file;
+          var lenBytes = await videoFile?.length();
+
+          _videos.add(VideoItem(
+            video: video,
+            lengthBytes: lenBytes,
+          ));
+        }
+      }
+    }
+  }
+
+  Future<void> _loadAlbums() async {
     if (_noPermissions) {
       return;
     }
 
     _photos.clear();
 
-    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList();
+    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
+        hasAll: false, type: RequestType.video);
 
     _isLoading = true;
     onChanged();

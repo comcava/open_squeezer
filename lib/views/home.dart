@@ -85,9 +85,7 @@ class _HomePageState extends State<HomePage> {
     if (!_controller.isLoading || _controller.noPermissions) {
       actionButton = FloatingActionButton(
         onPressed: () {
-          // TODO: remove
-          AutoRouter.of(context).replaceAll([const ClearDoneRoute()]);
-          // _confirmDelete();
+          _confirmDelete();
         },
         child: const Icon(Icons.cleaning_services_outlined),
       );
