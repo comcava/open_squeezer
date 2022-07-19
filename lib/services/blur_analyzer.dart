@@ -7,8 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:isolate_handler/isolate_handler.dart';
-
 import 'package:opencv_4/factory/pathfrom.dart';
 import 'package:opencv_4/opencv_4.dart';
 import 'package:fast_image_resizer/fast_image_resizer.dart';
@@ -71,8 +69,6 @@ class LaplacianBlurAnalyzer {
     }
 
     bool exists = await image.exists;
-
-    debugPrint("processing $imgName");
 
     if (!exists) {
       return null;
@@ -142,22 +138,30 @@ class LaplacianBlurAnalyzer {
     var windowSize = (origPhotos.length / 4).floor();
 
     var allResults = await Future.wait([
+      //   (() async {
+      //     var message = origPhotos.skip(windowSize);
+      //     return await _processPhotos(message, tempDir);
+      //   })(),
       (() async {
-        var message = origPhotos.take(windowSize).toList();
+        var message = origPhotos;
         return await _processPhotos(message, tempDir);
       })(),
-      (() async {
-        var message = origPhotos.skip(windowSize).take(windowSize).toList();
-        return await _processPhotos(message, tempDir);
-      })(),
-      (() async {
-        var message = origPhotos.skip(windowSize * 2).take(windowSize).toList();
-        return await _processPhotos(message, tempDir);
-      })(),
-      (() async {
-        var message = origPhotos.skip(windowSize * 3).toList();
-        return await _processPhotos(message, tempDir);
-      })(),
+      // (() async {
+      //   var message = origPhotos.take(windowSize).toList();
+      //   return await _processPhotos(message, tempDir);
+      // })(),
+      // (() async {
+      //   var message = origPhotos.skip(windowSize).take(windowSize).toList();
+      //   return await _processPhotos(message, tempDir);
+      // })(),
+      // (() async {
+      //   var message = origPhotos.skip(windowSize * 2).take(windowSize).toList();
+      //   return await _processPhotos(message, tempDir);
+      // })(),
+      // (() async {
+      //   var message = origPhotos.skip(windowSize * 3).toList();
+      //   return await _processPhotos(message, tempDir);
+      // })(),
     ]);
 
     List<PhotoItem> result = List.empty(growable: true);
@@ -171,7 +175,7 @@ class LaplacianBlurAnalyzer {
 }
 
 Future<List<PhotoItem>> _processPhotos(
-    List<AssetEntity> photos, String tempDir) async {
+    Iterable<AssetEntity> photos, String tempDir) async {
   List<PhotoItem> results = [];
 
   for (final photo in photos) {
@@ -194,40 +198,4 @@ Future<List<PhotoItem>> _processPhotos(
   }
 
   return results;
-}
-
-Future<dynamic> spawnIsolate(
-  dynamic message,
-  dynamic Function(dynamic) payloadFut,
-) async {
-  final isolates = IsolateHandler();
-
-  final stream = StreamController();
-
-  void entryPoint(dynamic context) {
-    final messenger = HandledIsolate.initialize(context);
-
-    // Triggered every time data is received from the main isolate.
-    messenger.listen((msg) async {
-      var res = await payloadFut(msg);
-      messenger.send(res);
-    });
-  }
-
-  int nameId = Random().nextInt(100000);
-  String name = "blur_analyzer_$nameId";
-
-  isolates.spawn<dynamic>(
-    entryPoint,
-    name: name,
-    onReceive: (msg) {
-      isolates.kill(name);
-      stream.add(msg);
-    },
-    onInitialized: () {
-      isolates.send(message, to: name);
-    },
-  );
-
-  return await stream.stream.first;
 }
