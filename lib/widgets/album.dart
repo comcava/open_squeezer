@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:blur_detector/controllers/home_controller.dart';
 import 'package:flutter/material.dart';
 

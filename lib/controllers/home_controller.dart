@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -31,11 +29,9 @@ class HomeController {
   }
 
   _loadAlbums() async {
-    final PermissionState _ps = await PhotoManager.requestPermissionExtend();
+    final PermissionState ps = await PhotoManager.requestPermissionExtend();
 
-    if (_ps.isAuth) {
-      // Granted.
-    } else {
+    if (!ps.isAuth) {
       print("Permission denied");
       // TODO: show permission denied screen
 
