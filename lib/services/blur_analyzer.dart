@@ -72,7 +72,7 @@ class LaplacianBlurAnalyzer {
 
     bool exists = await image.exists;
 
-    print("processing $imgName");
+    debugPrint("processing $imgName");
 
     if (!exists) {
       return null;
@@ -86,8 +86,6 @@ class LaplacianBlurAnalyzer {
 
     Uint8List? rawBytes = await rawImage.readAsBytes();
 
-    print("raw image len: ${rawBytes.buffer.lengthInBytes}");
-
     ByteData? bytes = await resizeImage(rawBytes, width: 200);
 
     rawBytes = null;
@@ -95,8 +93,6 @@ class LaplacianBlurAnalyzer {
     if (bytes == null) {
       throw Exception("Couldn't resize the image");
     }
-
-    print("resize image len: ${bytes.buffer.lengthInBytes}");
 
     var smallPath = await saveTempFile(bytes.buffer.asUint8List());
 
@@ -132,8 +128,6 @@ class LaplacianBlurAnalyzer {
     clearTempFile();
 
     var decodedByte = decoded!.getBytes(format: l_img.Format.luminance);
-
-    print("decoded bytes len: ${decodedByte.length}");
 
     var varianceNum = variance(decodedByte);
 

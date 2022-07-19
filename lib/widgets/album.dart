@@ -59,12 +59,14 @@ class Album extends StatelessWidget {
           );
         }
 
+        var albumTitle = _AlbumTitle(name: name);
+
         return SizedBox(
-          height: _AlbumTitle.height +
+          height: albumTitle.height(context) +
               photoRows.length * (kPhotoSize + kPhotoPadding * 2),
           child: Column(
             children: [
-              _AlbumTitle(name: name),
+              albumTitle,
               ...photoRows,
             ],
           ),
@@ -75,24 +77,31 @@ class Album extends StatelessWidget {
 }
 
 class _AlbumTitle extends StatelessWidget {
-  // TODO: replace 50 with font size
-  static const height = 50 + kDefaultPadding;
-
   final String? name;
 
   const _AlbumTitle({Key? key, this.name}) : super(key: key);
 
+  double height(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return
+        // from padding
+        kDefaultPadding * 2 +
+            // 16 is the default font size
+            (theme.textTheme.headlineSmall?.fontSize ?? 16) * 2;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // todo: consider coloring it
+    final theme = Theme.of(context);
+
     return Container(
       width: double.infinity,
-      height: height,
       padding: const EdgeInsets.all(kDefaultPadding),
-      // TODO: make text size 20
       child: Text(
         name ?? "",
         textAlign: TextAlign.start,
+        style: theme.textTheme.headlineSmall,
       ),
     );
   }

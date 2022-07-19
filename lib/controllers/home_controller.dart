@@ -121,8 +121,6 @@ class HomeController {
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-        // TODO: add 'processing {album name}'
-
         var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
         allPhotos.addAll(photos);
       }
