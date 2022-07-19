@@ -1,7 +1,13 @@
+import 'dart:async';
+
+import 'package:auto_route/auto_route.dart';
+import 'package:blur_detector/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 import '../widgets/album.dart';
+import '../widgets/no_permissions.dart';
 import '../config/constants.dart';
 import '../controllers/home_controller.dart';
 
@@ -14,6 +20,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late HomeController _controller;
+  late StreamSubscription<FGBGType> _bgSubscription;
 
   @override
   void initState() {
@@ -26,6 +33,21 @@ class _HomePageState extends State<HomePage> {
     });
 
     _controller.init();
+
+    _bgSubscription = FGBGEvents.stream.listen((FGBGType event) {
+      if (event == FGBGType.foreground) {
+        if (_controller.noPermissions) {
+          _controller.init();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _bgSubscription.cancel();
+
+    super.dispose();
   }
 
   _confirmDelete() {
@@ -40,13 +62,14 @@ class _HomePageState extends State<HomePage> {
         return AlertDeletePhotos(
           onYes: () async {
             await _controller.deleteSelectedPhotos();
+            await _controller.clearCache();
 
             if (mounted) {
-              Navigator.of(context).pop();
+              AutoRouter.of(context).replaceAll([const ClearDoneRoute()]);
             }
           },
           onNo: () async {
-            Navigator.of(context).pop();
+            AutoRouter.of(context).pop();
           },
         );
       },
@@ -59,7 +82,7 @@ class _HomePageState extends State<HomePage> {
 
     Widget? actionButton;
 
-    if (!_controller.isLoading) {
+    if (!_controller.isLoading || _controller.noPermissions) {
       actionButton = FloatingActionButton(
         onPressed: () {
           _confirmDelete();
@@ -89,22 +112,64 @@ class _HomePageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
+    if (controller.noPermissions) {
+      return const NoPermissions();
+    }
+
     if (controller.isLoading) {
-      return _buildLoading();
+      return _buildLoading(loc);
     }
 
     return ListView(
       children: [
+        Album(
+            name: loc.videos,
+            itemsLength: controller.videos.length,
+            builder: (index) {
+              var video = controller.videos[index];
+              return VideoThumbnail(
+                isChecked: controller.photoSelected(video.video.id),
+                onSelected: (id) {
+                  controller.toggleSelectedPhoto(id);
+                },
+                item: video,
+              );
+            }),
         ...controller.photos.map(
-          (p) => Album(albumItem: p, controller: controller),
+          (p) => Album(
+              name: p.album.name,
+              itemsLength: p.photos.length,
+              builder: (index) {
+                var photo = p.photos[index];
+
+                return PhotoThumbnail(
+                  isChecked: controller.photoSelected(photo.photo.id),
+                  onPhotoSelected: (id) {
+                    controller.toggleSelectedPhoto(id);
+                  },
+                  item: photo,
+                );
+              }),
         ),
       ],
     );
   }
 
-  Widget _buildLoading() {
-    return const Center(
-      child: CircularProgressIndicator(),
+  Widget _buildLoading(AppLocalizations loc) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          if (controller.processingAlbumName != null) ...[
+            const SizedBox(height: kDefaultPadding),
+            Text(loc.processingAlbum(controller.processingAlbumName!)),
+          ]
+        ],
+      ),
     );
   }
 }

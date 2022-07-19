@@ -2,11 +2,11 @@ import 'package:photo_manager/photo_manager.dart';
 
 typedef PhotoIdsSet = Set<String>;
 
-class AlbumItem {
+class PhotoAlbumItem {
   final AssetPathEntity album;
   final List<PhotoItem> photos;
 
-  AlbumItem({
+  PhotoAlbumItem({
     required this.album,
     required this.photos,
   });
@@ -19,5 +19,15 @@ class PhotoItem {
   const PhotoItem({
     required this.photo,
     required this.varianceNum,
+  });
+}
+
+class VideoItem {
+  final AssetEntity video;
+  final int? lengthBytes;
+
+  const VideoItem({
+    required this.video,
+    required this.lengthBytes,
   });
 }

@@ -45,6 +45,8 @@ dependencies:
   photo_manager: ^2.1.4
   uuid: ^3.0.6
   isolate_handler: ^1.0.1
+  flutter_fgbg: ^0.2.0
+  auto_route: ^4.2.1
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +58,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
+  auto_route_generator: ^4.0.0
+  build_runner:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

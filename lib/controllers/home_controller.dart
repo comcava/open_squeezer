@@ -6,62 +6,120 @@ import '../domain/album.dart';
 import '../services/blur_analyzer.dart';
 
 class HomeController {
-  final List<AlbumItem> _photos = List.empty(growable: true);
-  List<AlbumItem> get photos => _photos;
+  final List<PhotoAlbumItem> _photos = List.empty(growable: true);
+  List<PhotoAlbumItem> get photos => _photos;
+
+  final List<VideoItem> _videos = List.empty(growable: true);
+  List<VideoItem> get videos => _videos;
 
   PhotoIdsSet selectedPhotoIds = {};
 
-  bool get isLoading => _isLoading;
+  String? _processingAlbumName;
+  String? get processingAlbumName => _processingAlbumName;
 
-  bool _isLoading = true;
+  bool get isLoading => _isLoading;
+  bool _isLoading = false;
+  bool get noPermissions => _noPermissions;
+  bool _noPermissions = false;
 
   /// Is called when a value was changed (such as isLoading)
   VoidCallback onChanged;
 
   HomeController({required this.onChanged});
 
-  init() {
-    _loadAlbums();
+  Future<void> init() async {
+    await _checkGalleryPermissions();
+
+    _isLoading = true;
+    onChanged();
+    await Future.wait([_loadAlbums(), _loadVideos()]);
+    _isLoading = false;
+    onChanged();
   }
 
   Future<void> clearCache() async {
     await PhotoManager.clearFileCache();
+    debugPrint("Cache cleared");
   }
 
-  _loadAlbums() async {
+  Future<void> _checkGalleryPermissions() async {
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
 
     if (!ps.isAuth) {
-      print("Permission denied");
-      // TODO: show permission denied screen
+      _noPermissions = true;
+      debugPrint("Permission denied");
+    } else {
+      _noPermissions = false;
+    }
 
-      // Limited(iOS) or Rejected, use `==` for more precise judgements.
-      // You can call `PhotoManager.openSetting()`    to open settings for further steps.
-      PhotoManager.openSetting();
+    onChanged();
+  }
+
+  Future<void> _loadVideos() async {
+    if (_noPermissions) {
+      return;
+    }
+
+    if (_noPermissions) {
+      return;
+    }
+
+    _videos.clear();
+
+    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
+      type: RequestType.video,
+      onlyAll: true,
+    );
+
+    for (final path in paths) {
+      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+
+      for (var page = 0; page <= totalPages; page++) {
+        var videos =
+            await path.getAssetListPaged(page: page, size: kPhotoPageSize);
+
+        for (var video in videos) {
+          var videoFile = await video.file;
+          var lenBytes = await videoFile?.length();
+
+          _videos.add(VideoItem(
+            video: video,
+            lengthBytes: lenBytes,
+          ));
+        }
+      }
+    }
+
+    _videos.sort(
+      (v1, v2) => (v2.lengthBytes ?? 0).compareTo(v1.lengthBytes ?? 0),
+    );
+  }
+
+  Future<void> _loadAlbums() async {
+    if (_noPermissions) {
       return;
     }
 
     _photos.clear();
 
-    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList();
-
-    _isLoading = true;
-    onChanged();
+    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
+        hasAll: false, type: RequestType.image);
 
     for (var path in paths) {
       if (path.isAll) {
         continue;
       }
 
+      _processingAlbumName = path.name;
+      onChanged();
+
       var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
-      for (var page = 0; page <= totalPages; page++) {
+      for (var page = 0; page < totalPages; page++) {
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
-
-        // TODO: add 'processing {album name}'
 
         var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
         allPhotos.addAll(photos);
@@ -69,7 +127,7 @@ class HomeController {
 
       if (allPhotos.isNotEmpty) {
         _photos.add(
-          AlbumItem(
+          PhotoAlbumItem(
             album: path,
             photos: allPhotos,
           ),
@@ -77,8 +135,12 @@ class HomeController {
       }
     }
 
-    _isLoading = false;
+    _processingAlbumName = null;
     onChanged();
+  }
+
+  static Future<void> openSettings() async {
+    await PhotoManager.openSetting();
   }
 
   bool photoSelected(String id) {

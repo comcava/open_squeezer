@@ -5,8 +5,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
+import 'router.gr.dart';
 import 'config/constants.dart';
-import 'views/home.dart';
 
 void main() {
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -18,22 +18,27 @@ void main() {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final _appRouter = AppRouter();
+
+  MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Open Squeezer',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
+      routerDelegate: _appRouter.delegate(
+        initialDeepLink: "/",
+      ),
+      routeInformationParser: _appRouter.defaultRouteParser(),
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.system,
-      home: const HomePage(),
     );
   }
 }

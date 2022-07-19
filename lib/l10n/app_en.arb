@@ -6,5 +6,21 @@
   "no": "No",
   "noPhotosSelected": "No photos selected",
   "goSelectPhotos": "Select some photos by tapping on them, then tap this button to delete",
-  "ok": "Ok"
+  "ok": "Ok",
+  "weNeedGallery": "We need to access the gallery",
+  "weNeedGalleryBody": "We need a permission to access the gallery to analyze your photos and videos and find the blurry ones",
+  "grantAccess": "Grant access",
+  "allClean": "All clean",
+  "cleanAgain": "Clean again",
+  "videos": "Videos",
+  "processingAlbum": "Processing {name}",
+  "@processingAlbum": {
+    "description": "Placeholder to show while the photos are being analyzed",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Videos"
+      }
+    }
+  }
 }
