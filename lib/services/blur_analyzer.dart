@@ -155,7 +155,7 @@ class LaplacianBlurAnalyzer {
         return await _processPhotos(message, tempDir);
       })(),
       (() async {
-        var message = origPhotos.take(windowSize).toList();
+        var message = origPhotos.skip(windowSize).take(windowSize).toList();
         return await _processPhotos(message, tempDir);
       })(),
       (() async {
