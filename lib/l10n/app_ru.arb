@@ -12,5 +12,6 @@
   "grantAccess": "Разрешить доступ",
   "allClean": "Все чисто",
   "cleanAgain": "Еще раз",
-  "videos": "Видео"
+  "videos": "Видео",
+  "processingAlbum": "Ищу в {name}"
 }

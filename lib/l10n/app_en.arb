@@ -12,5 +12,15 @@
   "grantAccess": "Grant access",
   "allClean": "All clean",
   "cleanAgain": "Clean again",
-  "videos": "Videos"
+  "videos": "Videos",
+  "processingAlbum": "Processing {name}",
+  "@processingAlbum": {
+    "description": "Placeholder to show while the photos are being analyzed",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Videos"
+      }
+    }
+  }
 }

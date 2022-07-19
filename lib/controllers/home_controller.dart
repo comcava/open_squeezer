@@ -14,6 +14,9 @@ class HomeController {
 
   PhotoIdsSet selectedPhotoIds = {};
 
+  String? _processingAlbumName;
+  String? get processingAlbumName => _processingAlbumName;
+
   bool get isLoading => _isLoading;
   bool _isLoading = false;
   bool get noPermissions => _noPermissions;
@@ -107,6 +110,9 @@ class HomeController {
         continue;
       }
 
+      _processingAlbumName = path.name;
+      onChanged();
+
       var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
@@ -130,6 +136,9 @@ class HomeController {
         );
       }
     }
+
+    _processingAlbumName = null;
+    onChanged();
   }
 
   static Future<void> openSettings() async {

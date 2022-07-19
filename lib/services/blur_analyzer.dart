@@ -60,9 +60,7 @@ class LaplacianBlurAnalyzer {
     Future<String> saveTempFile(Uint8List data) async {
       String tempPath = "$tempDir/$imgName.png";
 
-      var file = await File(tempPath).writeAsBytes(data);
-
-      print("made temp path: $tempPath");
+      await File(tempPath).writeAsBytes(data);
 
       return tempPath;
     }

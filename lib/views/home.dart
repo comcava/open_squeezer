@@ -119,7 +119,7 @@ class _HomePageBody extends StatelessWidget {
     }
 
     if (controller.isLoading) {
-      return _buildLoading();
+      return _buildLoading(loc);
     }
 
     return ListView(
@@ -157,9 +157,16 @@ class _HomePageBody extends StatelessWidget {
     );
   }
 
-  Widget _buildLoading() {
-    return const Center(
-      child: CircularProgressIndicator(),
+  Widget _buildLoading(AppLocalizations loc) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CircularProgressIndicator(),
+        if (controller.processingAlbumName != null) ...[
+          const SizedBox(height: kDefaultPadding),
+          Text(loc.processingAlbum(controller.processingAlbumName!)),
+        ]
+      ],
     );
   }
 }
