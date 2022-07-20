@@ -90,7 +90,10 @@ class _AlbumTitle extends StatelessWidget {
         // from padding
         kDefaultPadding * 2 +
             // assume 16 is the default font size
-            (titleTheme?.fontSize ?? 16) * (titleTheme?.height ?? 1);
+            (titleTheme?.fontSize ?? 16) * (titleTheme?.height ?? 1) +
+            // had an overflow by 0.8 pixels,
+            // add 2 in case of rounding errors
+            2;
   }
 
   @override
@@ -175,13 +178,6 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
               height: kPhotoSize,
               width: kPhotoSize,
               child: _imageWidget,
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Text(
-                "v: ${widget.item.varianceNum}",
-                style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
-              ),
             ),
             Align(
               alignment: Alignment.bottomRight,
