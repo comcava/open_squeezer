@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../config/constants.dart';
 import '../domain/album.dart';
-import '../services/blur_analyzer.dart';
+import '../services/opencv_ffi.dart' as openCvFfi;
 
 class HomeController {
   final List<PhotoAlbumItem> _photos = List.empty(growable: true);
@@ -117,17 +118,13 @@ class HomeController {
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
-      // for (var page = 0; page < totalPages; page++) {
-      // TODO: fix
-      var pageList =
-          await path.getAssetListPaged(page: 0, size: kPhotoPageSize);
+      for (var page = 0; page < totalPages; page++) {
+        var pageList =
+            await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-      var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
-      allPhotos.addAll(photos);
-
-// TODO; not return
-      return;
-      // }
+        var photos = await _analyzePhotos(pageList);
+        allPhotos.addAll(photos);
+      }
 
       if (allPhotos.isNotEmpty) {
         _photos.add(
@@ -141,6 +138,77 @@ class HomeController {
 
     _processingAlbumName = null;
     onChanged();
+  }
+
+  Future<List<PhotoItem>> _analyzePhotos(List<AssetEntity> photos) async {
+    List<PhotoItem> processThread(Iterable<Map> files) {
+      if (files.isEmpty) {
+        return [];
+      }
+
+      List<PhotoItem> res = List.empty(growable: true);
+
+      for (var file in files) {
+        String path = file["path"]!;
+        var variance = openCvFfi.laplacianBlur(path);
+        var photo = file["photo"]!;
+
+        print("got variance: $variance");
+
+        res.add(PhotoItem(photo: photo, varianceNum: variance));
+      }
+
+      return res;
+    }
+
+    List<Map> photoPaths = [];
+
+    for (var photo in photos) {
+      var file = await photo.file;
+
+      if (file?.path == null) {
+        continue;
+      }
+
+      photoPaths.add({
+        "path": file!.path,
+        "photo": photo,
+      });
+    }
+
+    var windowSize = (photoPaths.length / 4).floor();
+
+    var allItems = await Future.wait([
+      compute(
+        processThread,
+        photoPaths,
+      ),
+
+      // compute(
+      //   processThread,
+      //   photoPaths.take(windowSize),
+      // ),
+      // compute(
+      //   processThread,
+      //   photoPaths.skip(windowSize).take(windowSize),
+      // ),
+      // compute(
+      //   processThread,
+      //   photoPaths.skip(windowSize * 2).take(windowSize),
+      // ),
+      // compute(
+      //   processThread,
+      //   photoPaths.skip(windowSize * 3),
+      // ),
+    ]);
+
+    List<PhotoItem> items = [];
+
+    for (final itemsList in allItems) {
+      items.addAll(itemsList);
+    }
+
+    return items;
   }
 
   static Future<void> openSettings() async {

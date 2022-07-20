@@ -91,7 +91,7 @@ extern "C"
         catch (Exception e)
         {
             platform_log("Error processing %s: %s", inputImagePath, e.what());
-            return -1;
+            return 0;
         }
     }
 }

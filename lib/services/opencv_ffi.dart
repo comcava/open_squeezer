@@ -31,5 +31,9 @@ double laplacianBlur(String inputPath) {
   var inputPathStr = inputPath.toNativeUtf8();
   var value = _laplacianBlur(inputPathStr);
 
+  if (value == -1) {
+    throw Exception("Error processing $inputPath");
+  }
+
   return value;
 }
