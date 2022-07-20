@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../config/constants.dart';
 import '../domain/album.dart';
@@ -33,31 +34,34 @@ class Album extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final theme = Theme.of(context);
+        final loc = AppLocalizations.of(context)!;
+
         List<Widget> photoRows = List.empty(growable: true);
 
         var photosPerRow = (constraints.maxWidth / kPhotoSize).floor();
 
-        for (var idx = 0; idx < itemsLength; idx += photosPerRow) {
-          photoRows.add(
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(photosPerRow, (pos) {
-                if ((pos + idx) < itemsLength) {
-                  return SizedBox(
-                    width: kPhotoSize,
-                    height: kPhotoSize,
-                    child: builder(pos + idx),
-                  );
-                } else {
-                  return const SizedBox(
-                    width: kPhotoSize,
-                    height: kPhotoSize,
-                  );
-                }
-              }),
-            ),
-          );
-        }
+        // for (var idx = 0; idx < itemsLength; idx += photosPerRow) {
+        //   photoRows.add(
+        //     Row(
+        //       mainAxisAlignment: MainAxisAlignment.spaceAround,
+        //       children: List.generate(photosPerRow, (pos) {
+        //         if ((pos + idx) < itemsLength) {
+        //           return SizedBox(
+        //             width: kPhotoSize,
+        //             height: kPhotoSize,
+        //             child: builder(pos + idx),
+        //           );
+        //         } else {
+        //           return const SizedBox(
+        //             width: kPhotoSize,
+        //             height: kPhotoSize,
+        //           );
+        //         }
+        //       }),
+        //     ),
+        //   );
+        // }
 
         var albumTitle = _AlbumTitle(name: name);
 
@@ -67,7 +71,17 @@ class Album extends StatelessWidget {
           child: Column(
             children: [
               albumTitle,
-              ...photoRows,
+              if (photoRows.isEmpty)
+                SizedBox(
+                  width: kPhotoSize,
+                  height: double.infinity,
+                  child: Text(
+                    loc.noPhotos,
+                    style: theme.textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              if (photoRows.isNotEmpty) ...photoRows,
             ],
           ),
         );
