@@ -58,6 +58,20 @@ extern "C"
         return CV_VERSION;
     }
 
+    bool is_heic(string path)
+    {
+        const string fType = ".heic";
+
+        if (path.length == 0 || path.length = < fType.length)
+        {
+            return false;
+        }
+
+        int extensionIdx = input.length() - fType.length();
+
+        return &input[extensionIdx] == fType;
+    }
+
     FUNCTION_ATTRIBUTE
     float laplacian_blur(char *inputImagePath)
     {
