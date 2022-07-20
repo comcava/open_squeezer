@@ -3,8 +3,10 @@
 mkdir -p download
 cd download
 
-curl -L https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-android-sdk.zip/download -O opencv-4.6.0-android-sdk.zip
-curl -L https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-ios-framework.zip/download -O opencv-4.6.0-ios-framework.zip 
+# you can use `curl -L <url> -o <file>`, but it sometimes
+# doesn't like the SSL certificate, so we're using wget here
+wget -O opencv-4.6.0-android-sdk.zip https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-android-sdk.zip/download
+wget -O opencv-4.6.0-ios-framework.zip https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-ios-framework.zip/download
 
 unzip opencv-4.6.0-android-sdk.zip
 unzip opencv-4.6.0-ios-framework.zip

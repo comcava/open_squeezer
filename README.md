@@ -6,7 +6,9 @@ Open-source, privacy respecting photo gallery cleaner for iOS and Android.
 
 ```
 # Run this only the first time. It will download open_cv binaries
-# scripts/init_opencv.sh
+# cd scripts
+# ./init_opencv.sh
+# cd ..
 
 flutter run
 ```
