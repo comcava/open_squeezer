@@ -186,9 +186,9 @@ class HomeController {
 
         print("                  got variance $path: $variance");
 
-        // if (variance <= kLaplacianBlurThreshold) {
-        res.add(PhotoItem(photo: photo, varianceNum: variance));
-        // }
+        if (variance <= kLaplacianBlurThreshold) {
+          res.add(PhotoItem(photo: photo, varianceNum: variance));
+        }
       }
 
       return res;
