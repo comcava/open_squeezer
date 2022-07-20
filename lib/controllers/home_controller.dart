@@ -198,8 +198,9 @@ class HomeController {
 
     List<Map> photoPaths = [];
 
+    print("getting file paths");
     for (var photo in photos) {
-      var file = await photo.file;
+      var file = await photo.originFile;
 
       if (file?.path == null) {
         continue;
@@ -212,6 +213,8 @@ class HomeController {
     }
 
     var windowSize = (photoPaths.length / 5).floor();
+
+    print("getting file paths done. got: ${photoPaths.length}");
 
     var allItems = await Future.wait([
       compute(
