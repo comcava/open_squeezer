@@ -61,46 +61,37 @@ extern "C"
     FUNCTION_ATTRIBUTE
     float laplacian_blur(char *inputImagePath)
     {
-        long long start = get_now();
+        try
+        {
+            long long start = get_now();
 
-        Mat input = imread(inputImagePath, IMREAD_COLOR);
+            Mat input = imread(inputImagePath, IMREAD_COLOR);
 
-        // TODO: remove platform log
-        platform_log("loaded %s", inputImagePath);
+            const int croppedRows = 200;
+            int croppedTimes = input.rows / croppedRows;
+            Size croppedSize = Size(croppedRows, input.cols / croppedTimes);
 
-        const int croppedRows = 200;
-        int croppedTimes = input.rows / croppedRows;
-        Size croppedSize = Size(croppedRows, input.cols / croppedTimes);
+            Mat resized = Mat(croppedSize, input.type());
+            cv::resize(input, resized, croppedSize);
 
-        Mat resized = Mat(croppedSize, input.type());
+            Mat discolored;
+            cv::cvtColor(resized, discolored, COLOR_BGR2GRAY);
 
-        platform_log("before resize: %d %d", croppedRows, input.cols / croppedTimes);
+            Mat laplacian;
+            cv::Laplacian(discolored, laplacian, 0);
 
-        // TODO: panicked here
-        cv::resize(input, resized, croppedSize);
-        // delete[] & input;
-        platform_log("resize done");
+            Scalar scalarMean = cv::mean(laplacian);
+            float mean = scalarMean.val[0];
 
-        Mat discolored;
+            int evalInMillis = static_cast<int>(get_now() - start);
+            platform_log("Processing %s done in %dms\n", inputImagePath, evalInMillis);
 
-        cv::cvtColor(resized, discolored, COLOR_BGR2GRAY);
-        // delete[] & resized;
-        platform_log("resized done");
-
-        Mat laplacian;
-        cv::Laplacian(discolored, laplacian, 0);
-        // delete[] & discolored;
-
-        platform_log("laplacian done");
-
-        Scalar scalarMean = cv::mean(laplacian);
-        float mean = scalarMean.val[0];
-
-        platform_log("mean done");
-
-        int evalInMillis = static_cast<int>(get_now() - start);
-        platform_log("Processing %s done in %dms\n", inputImagePath, evalInMillis);
-
-        return mean;
+            return mean;
+        }
+        catch (Exception e)
+        {
+            platform_log("Error processing %s: %s", inputImagePath, e.what());
+            return -1;
+        }
     }
 }
