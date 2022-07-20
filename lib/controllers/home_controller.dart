@@ -155,7 +155,9 @@ class HomeController {
 
         print("got variance: $variance");
 
-        res.add(PhotoItem(photo: photo, varianceNum: variance));
+        if (variance < kLaplacianBlurThreshold) {
+          res.add(PhotoItem(photo: photo, varianceNum: variance));
+        }
       }
 
       return res;
@@ -176,30 +178,29 @@ class HomeController {
       });
     }
 
-    var windowSize = (photoPaths.length / 4).floor();
+    var windowSize = (photoPaths.length / 5).floor();
 
     var allItems = await Future.wait([
       compute(
         processThread,
-        photoPaths,
+        photoPaths.take(windowSize),
       ),
-
-      // compute(
-      //   processThread,
-      //   photoPaths.take(windowSize),
-      // ),
-      // compute(
-      //   processThread,
-      //   photoPaths.skip(windowSize).take(windowSize),
-      // ),
-      // compute(
-      //   processThread,
-      //   photoPaths.skip(windowSize * 2).take(windowSize),
-      // ),
-      // compute(
-      //   processThread,
-      //   photoPaths.skip(windowSize * 3),
-      // ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize).take(windowSize),
+      ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize * 2).take(windowSize),
+      ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize * 3).take(windowSize),
+      ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize * 4),
+      ),
     ]);
 
     List<PhotoItem> items = [];
