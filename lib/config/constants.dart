@@ -68,3 +68,9 @@ const double kLaplacianBlurThreshold = 5;
 
 /// How many photos to load at a time
 const int kPhotoPageSize = 200;
+
+const List<String> kScreenshotsFolders = [
+  "Screenshots",
+  "Скриншоты",
+  "Снимки экрана"
+];

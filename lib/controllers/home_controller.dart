@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../config/constants.dart';
 import '../domain/album.dart';
-import '../services/opencv_ffi.dart' as openCvFfi;
+import '../services/opencv_ffi.dart' as open_cv_ffi;
 
 class HomeController {
   final List<PhotoAlbumItem> _photos = List.empty(growable: true);
@@ -104,15 +103,20 @@ class HomeController {
     _photos.clear();
 
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
-        hasAll: false, type: RequestType.image);
+      type: RequestType.image,
+    );
+
+    ;
 
     for (var path in paths) {
-      if (path.isAll) {
-        continue;
-      }
-
       _processingAlbumName = path.name;
       onChanged();
+
+      bool analyzeImages = true;
+
+      if (kScreenshotsFolders.contains(path.name)) {
+        analyzeImages = false;
+      }
 
       var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
@@ -122,8 +126,19 @@ class HomeController {
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-        var photos = await _analyzePhotos(pageList);
-        allPhotos.addAll(photos);
+        if (analyzeImages) {
+          var photos = await _analyzePhotos(pageList);
+          allPhotos.addAll(photos);
+        } else {
+          allPhotos.addAll(
+            pageList.map(
+              (photo) => PhotoItem(
+                photo: photo,
+                varianceNum: 0,
+              ),
+            ),
+          );
+        }
       }
 
       if (allPhotos.isNotEmpty) {
@@ -136,8 +151,25 @@ class HomeController {
       }
     }
 
+    _sortPhotos();
+
     _processingAlbumName = null;
     onChanged();
+  }
+
+  _sortPhotos() {
+    if (_photos.isEmpty) {
+      return;
+    }
+
+    var screenshotIdx = _photos.indexWhere(
+      (element) => kScreenshotsFolders.contains(element.album.name),
+    );
+
+    if (screenshotIdx != -1) {
+      var screenshotsFolder = _photos.removeAt(screenshotIdx);
+      _photos.add(screenshotsFolder);
+    }
   }
 
   Future<List<PhotoItem>> _analyzePhotos(List<AssetEntity> photos) async {
@@ -150,14 +182,15 @@ class HomeController {
 
       for (var file in files) {
         String path = file["path"]!;
-        var variance = openCvFfi.laplacianBlur(path);
+        print("start analyzing $path");
+        var variance = open_cv_ffi.laplacianBlur(path);
         var photo = file["photo"]!;
 
-        print("got variance: $variance");
+        print("                  got variance $path: $variance");
 
-        if (variance < kLaplacianBlurThreshold) {
-          res.add(PhotoItem(photo: photo, varianceNum: variance));
-        }
+        // if (variance <= kLaplacianBlurThreshold) {
+        res.add(PhotoItem(photo: photo, varianceNum: variance));
+        // }
       }
 
       return res;

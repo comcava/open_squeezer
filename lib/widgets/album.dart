@@ -181,6 +181,14 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
                 child: _imageWidget,
               ),
               Align(
+                alignment: Alignment.center,
+                child: Text(
+                  "v: ${widget.item.varianceNum}",
+                  style:
+                      theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+                ),
+              ),
+              Align(
                 alignment: Alignment.bottomRight,
                 child: Container(
                   width: kCheckboxSize,
