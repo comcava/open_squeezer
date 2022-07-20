@@ -106,8 +106,6 @@ class HomeController {
       type: RequestType.image,
     );
 
-    ;
-
     for (var path in paths) {
       _processingAlbumName = path.name;
       onChanged();

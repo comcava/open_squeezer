@@ -3,8 +3,8 @@
 mkdir -p download
 cd download
 
-# wget -O opencv-4.6.0-android-sdk.zip https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-android-sdk.zip/download
-# wget -O opencv-4.6.0-ios-framework.zip https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-ios-framework.zip/download
+curl -L https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-android-sdk.zip/download -O opencv-4.6.0-android-sdk.zip
+curl -L https://sourceforge.net/projects/opencvlibrary/files/4.6.0/opencv-4.6.0-ios-framework.zip/download -O opencv-4.6.0-ios-framework.zip 
 
 unzip opencv-4.6.0-android-sdk.zip
 unzip opencv-4.6.0-ios-framework.zip

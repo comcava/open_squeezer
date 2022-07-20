@@ -180,6 +180,7 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
                 width: kPhotoSize,
                 child: _imageWidget,
               ),
+              // TODO: delete
               Align(
                 alignment: Alignment.center,
                 child: Text(
