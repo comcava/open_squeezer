@@ -69,6 +69,11 @@ const double kLaplacianBlurThreshold = 5;
 /// How many photos to load at a time
 const int kPhotoPageSize = 200;
 
+/// Maximum number of large videos to show
+/// Assume there are 3 rows on a phone,
+/// then we will show up to 7 rows
+const int kMaxVideos = 21;
+
 const List<String> kScreenshotsFolders = [
   "Screenshots",
   "Скриншоты",

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -11,6 +13,8 @@ class HomeController {
 
   final List<VideoItem> _videos = List.empty(growable: true);
   List<VideoItem> get videos => _videos;
+
+  bool get noPhotosVideos => _videos.isEmpty && _photos.isEmpty;
 
   PhotoIdsSet selectedPhotoIds = {};
 
@@ -93,6 +97,8 @@ class HomeController {
     _videos.sort(
       (v1, v2) => (v2.lengthBytes ?? 0).compareTo(v1.lengthBytes ?? 0),
     );
+
+    _videos.length = min(videos.length, kMaxVideos);
   }
 
   Future<void> _loadAlbums() async {

@@ -41,47 +41,40 @@ class Album extends StatelessWidget {
 
         var photosPerRow = (constraints.maxWidth / kPhotoSize).floor();
 
-        // for (var idx = 0; idx < itemsLength; idx += photosPerRow) {
-        //   photoRows.add(
-        //     Row(
-        //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-        //       children: List.generate(photosPerRow, (pos) {
-        //         if ((pos + idx) < itemsLength) {
-        //           return SizedBox(
-        //             width: kPhotoSize,
-        //             height: kPhotoSize,
-        //             child: builder(pos + idx),
-        //           );
-        //         } else {
-        //           return const SizedBox(
-        //             width: kPhotoSize,
-        //             height: kPhotoSize,
-        //           );
-        //         }
-        //       }),
-        //     ),
-        //   );
-        // }
+        for (var idx = 0; idx < itemsLength; idx += photosPerRow) {
+          photoRows.add(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(photosPerRow, (pos) {
+                if ((pos + idx) < itemsLength) {
+                  return SizedBox(
+                    width: kPhotoSize,
+                    height: kPhotoSize,
+                    child: builder(pos + idx),
+                  );
+                } else {
+                  return const SizedBox(
+                    width: kPhotoSize,
+                    height: kPhotoSize,
+                  );
+                }
+              }),
+            ),
+          );
+        }
+
+        if (photoRows.isEmpty) {
+          return const SizedBox();
+        }
 
         var albumTitle = _AlbumTitle(name: name);
 
         return SizedBox(
-          height: albumTitle.height(context) +
-              photoRows.length * (kPhotoSize + kPhotoPadding * 2),
+          height: albumTitle.height(context) + photoRows.length * kPhotoSize,
           child: Column(
             children: [
               albumTitle,
-              if (photoRows.isEmpty)
-                SizedBox(
-                  width: kPhotoSize,
-                  height: double.infinity,
-                  child: Text(
-                    loc.noPhotos,
-                    style: theme.textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              if (photoRows.isNotEmpty) ...photoRows,
+              ...photoRows,
             ],
           ),
         );
