@@ -2,58 +2,39 @@ PODS:
   - Flutter (1.0.0)
   - flutter_fgbg (0.0.1):
     - Flutter
-  - FMDB (2.7.5):
-    - FMDB/standard (= 2.7.5)
-  - FMDB/standard (2.7.5)
-  - OpenCV2 (4.3.0)
-  - opencv_4 (0.0.1):
+  - native_opencv (0.0.1):
     - Flutter
-    - OpenCV2 (= 4.3.0)
   - path_provider_ios (0.0.1):
     - Flutter
   - photo_manager (2.0.0):
     - Flutter
     - FlutterMacOS
-  - sqflite (0.0.2):
-    - Flutter
-    - FMDB (>= 2.7.5)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_fgbg (from `.symlinks/plugins/flutter_fgbg/ios`)
-  - opencv_4 (from `.symlinks/plugins/opencv_4/ios`)
+  - native_opencv (from `.symlinks/plugins/native_opencv/ios`)
   - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
   - photo_manager (from `.symlinks/plugins/photo_manager/ios`)
-  - sqflite (from `.symlinks/plugins/sqflite/ios`)
-
-SPEC REPOS:
-  trunk:
-    - FMDB
-    - OpenCV2
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   flutter_fgbg:
     :path: ".symlinks/plugins/flutter_fgbg/ios"
-  opencv_4:
-    :path: ".symlinks/plugins/opencv_4/ios"
+  native_opencv:
+    :path: ".symlinks/plugins/native_opencv/ios"
   path_provider_ios:
     :path: ".symlinks/plugins/path_provider_ios/ios"
   photo_manager:
     :path: ".symlinks/plugins/photo_manager/ios"
-  sqflite:
-    :path: ".symlinks/plugins/sqflite/ios"
 
 SPEC CHECKSUMS:
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   flutter_fgbg: 31c0d1140a131daea2d342121808f6aa0dcd879d
-  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
-  OpenCV2: ffe82e5cb5d16dc3fc01a5f4127b9a5b3cfc7d1b
-  opencv_4: 0da310f635aa2f506bcb30b3e85365a74e55ab18
+  native_opencv: 31722b4d9dc05cdfec7a0b9b402eebae4cc7cac6
   path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
   photo_manager: 4f6810b7dfc4feb03b461ac1a70dacf91fba7604
-  sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 

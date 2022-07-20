@@ -167,37 +167,39 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
       onTap: () {
         widget.onPhotoSelected(widget.item.photo.id);
       },
-      child: AnimatedContainer(
+      child: AnimatedPadding(
         duration: kDefaultAnimationDuration,
         padding: EdgeInsets.all(photoPadding),
-        width: kPhotoSize,
-        height: kPhotoSize,
-        child: Stack(
-          children: [
-            SizedBox(
-              height: kPhotoSize,
-              width: kPhotoSize,
-              child: _imageWidget,
-            ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Container(
-                width: kCheckboxSize,
-                height: kCheckboxSize,
-                decoration: containerDecoration,
-                child: Checkbox(
-                  value: widget.isChecked,
-                  fillColor: MaterialStateProperty.all(
-                    theme.colorScheme.primary,
-                  ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (newVal) {
-                    widget.onPhotoSelected(widget.item.photo.id);
-                  },
-                ),
+        child: SizedBox(
+          width: kPhotoSize,
+          height: kPhotoSize,
+          child: Stack(
+            children: [
+              SizedBox(
+                height: kPhotoSize,
+                width: kPhotoSize,
+                child: _imageWidget,
               ),
-            )
-          ],
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  width: kCheckboxSize,
+                  height: kCheckboxSize,
+                  decoration: containerDecoration,
+                  child: Checkbox(
+                    value: widget.isChecked,
+                    fillColor: MaterialStateProperty.all(
+                      theme.colorScheme.primary,
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onChanged: (newVal) {
+                      widget.onPhotoSelected(widget.item.photo.id);
+                    },
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -302,64 +304,66 @@ class _VideoThumbnailState extends State<VideoThumbnail> {
       onTap: () {
         widget.onSelected(widget.item.video.id);
       },
-      child: AnimatedContainer(
+      child: AnimatedPadding(
         duration: kDefaultAnimationDuration,
         padding: EdgeInsets.all(photoPadding),
-        width: kPhotoSize,
-        height: kPhotoSize,
-        child: Stack(
-          children: [
-            SizedBox(
-              height: kPhotoSize,
-              width: kPhotoSize,
-              child: _imageWidget,
-            ),
-            Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                decoration: containerDecoration,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.play_arrow,
-                      color: Colors.grey.shade200,
-                      size: kCheckboxSize,
-                    ),
-                    if (_lenText != null)
-                      Padding(
-                        // Icon before already has padding
-                        padding: const EdgeInsets.only(right: 5),
-                        child: Text(
-                          _lenText!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade200,
+        child: SizedBox(
+          width: kPhotoSize,
+          height: kPhotoSize,
+          child: Stack(
+            children: [
+              SizedBox(
+                height: kPhotoSize,
+                width: kPhotoSize,
+                child: _imageWidget,
+              ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: Container(
+                  decoration: containerDecoration,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.play_arrow,
+                        color: Colors.grey.shade200,
+                        size: kCheckboxSize,
+                      ),
+                      if (_lenText != null)
+                        Padding(
+                          // Icon before already has padding
+                          padding: const EdgeInsets.only(right: 5),
+                          child: Text(
+                            _lenText!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.grey.shade200,
+                            ),
                           ),
-                        ),
-                      )
-                  ],
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Container(
-                width: kCheckboxSize,
-                height: kCheckboxSize,
-                decoration: containerDecoration,
-                child: Checkbox(
-                  value: widget.isChecked,
-                  fillColor: MaterialStateProperty.all(
-                    theme.colorScheme.primary,
+                        )
+                    ],
                   ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (newVal) {
-                    widget.onSelected(widget.item.video.id);
-                  },
                 ),
               ),
-            )
-          ],
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  width: kCheckboxSize,
+                  height: kCheckboxSize,
+                  decoration: containerDecoration,
+                  child: Checkbox(
+                    value: widget.isChecked,
+                    fillColor: MaterialStateProperty.all(
+                      theme.colorScheme.primary,
+                    ),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onChanged: (newVal) {
+                      widget.onSelected(widget.item.video.id);
+                    },
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
