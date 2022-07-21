@@ -1,6 +1,8 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 
+#include <libheif/heif.h>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #define IS_WIN32
 #endif
@@ -58,28 +60,56 @@ extern "C"
         return CV_VERSION;
     }
 
-    bool is_heic(string path)
+    bool is_type(string path, string f_type)
     {
-        const string fType = ".heic";
-
-        if (path.length == 0 || path.length = < fType.length)
+        if (path.length() == 0 || path.length() <= f_type.length())
         {
             return false;
         }
 
-        int extensionIdx = input.length() - fType.length();
+        int extensionIdx = path.length() - f_type.length();
 
-        return &input[extensionIdx] == fType;
+        return &path[extensionIdx] == f_type;
+    }
+
+    Mat read_heif(char *input_path)
+    {
+        heif_context *ctx = heif_context_alloc();
+        heif_context_read_from_file(ctx, input_path, nullptr);
+
+        // get a handle to the primary image
+        heif_image_handle *handle;
+        heif_context_get_primary_image_handle(ctx, &handle);
+
+        // decode the image and convert colorspace to RGB, saved as 24bit interleaved
+        heif_image *img;
+        heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
+
+        int stride;
+        const uint8_t *data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
+
+        Mat map = Mat(data, copyData = true);
+
+        return map
     }
 
     FUNCTION_ATTRIBUTE
-    float laplacian_blur(char *inputImagePath)
+    float laplacian_blur(char *input_image_path)
     {
         try
         {
             long long start = get_now();
 
-            Mat input = imread(inputImagePath, IMREAD_COLOR);
+            Mat input;
+
+            if (is_type(input_image_path, ".heif") || is_type(input_image_path, ".heic"))
+            {
+                input = read_heif(input_image_path);
+            }
+            else
+            {
+                input = imread(input_image_path, IMREAD_COLOR);
+            }
 
             const int croppedRows = 200;
             int croppedTimes = input.rows / croppedRows;
@@ -98,13 +128,13 @@ extern "C"
             float mean = scalarMean.val[0];
 
             int evalInMillis = static_cast<int>(get_now() - start);
-            platform_log("Processing %s done in %dms\n", inputImagePath, evalInMillis);
+            platform_log("Processing %s done in %dms\n", input_image_path, evalInMillis);
 
             return mean;
         }
         catch (Exception e)
         {
-            platform_log("Error processing %s: %s", inputImagePath, e.what());
+            platform_log("Error processing %s: %s", input_image_path, e.what());
             return 0;
         }
     }

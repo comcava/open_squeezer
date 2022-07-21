@@ -29,6 +29,20 @@ A new Flutter plugin project.
   s.vendored_frameworks = 'opencv2.framework'
   # including native framework
   s.frameworks = 'AVFoundation' 
+
+  s.preserve_paths = 'libheif/**'
+  s.xcconfig = {
+      # 'HEADER_SEARCH_PATHS' => "\"${PODS_ROOT}/libheif/libheif\""
+      'HEADER_SEARCH_PATHS' => "\"libheif/libheif\""
+  }
+  s.subspec 'libheif' do |ss|
+    ss.dependency 'libheif/libheif'
+    ss.source_files = 'libheif/libheif/**/*', 'heif.h'
+  end
+
+  s.public_header_files = "libheif/libheif/heif.h"
+
   # including C++ library
   s.library = 'c++'
+
 end
