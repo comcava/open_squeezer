@@ -1,7 +1,9 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 
-#include <libheif/heif.h>
+#define LIBHEIF_API
+
+#include "libheif/heif.h"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #define IS_WIN32
@@ -103,6 +105,7 @@ Mat read_heif(char *input_path)
 // Avoiding name mangling
 extern "C"
 {
+
     FUNCTION_ATTRIBUTE
     const char *version()
     {
