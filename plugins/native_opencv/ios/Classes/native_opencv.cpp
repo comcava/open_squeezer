@@ -66,8 +66,6 @@ extern "C"
 {
 #include <libheif/heif.h>
 
-    heif_context *heif_context_alloc();
-
     FUNCTION_ATTRIBUTE
     const char *version()
     {

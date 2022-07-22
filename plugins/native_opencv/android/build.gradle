@@ -62,9 +62,7 @@ android {
 
     externalNativeBuild {
         cmake {
-            // path "CMakeLists.txt"
             path "CMakeLists.txt"
-            path "../include/libheif/CMakeLists.txt"
         }
     }
 }
