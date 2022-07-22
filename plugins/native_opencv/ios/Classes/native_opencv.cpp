@@ -1,10 +1,6 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 
-#define LIBHEIF_API
-
-#include "libheif/heif.h"
-
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #define IS_WIN32
 #endif
@@ -65,46 +61,12 @@ bool is_type(string path, string f_type)
     return &path[extensionIdx] == f_type;
 }
 
-Mat read_heif(char *input_path)
-{
-    heif_context *ctx = heif_context_alloc();
-    heif_context_read_from_file(ctx, input_path, nullptr);
-
-    // get a handle to the primary image
-    heif_image_handle *handle;
-    heif_context_get_primary_image_handle(ctx, &handle);
-
-    // decode the image and convert colorspace to RGB, saved as 24bit interleaved
-    heif_image *img;
-    heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
-
-    int stride;
-    const uint8_t *data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
-
-    int width = heif_image_handle_get_width(handle);
-    int height = heif_image_handle_get_height(handle);
-
-    Mat map = Mat(width, height, CV_8UC3);
-
-    int arr_index = 0;
-    for (int w = 0; w < width; w++)
-    {
-        for (int h = 0; h < height; h++)
-        {
-            map.at<unsigned short int>(w, h, 0) = data[arr_index];
-            map.at<unsigned short int>(w, h, 1) = data[arr_index + 1];
-            map.at<unsigned short int>(w, h, 2) = data[arr_index + 2];
-
-            arr_index += 3;
-        }
-    }
-
-    return map;
-}
-
 // Avoiding name mangling
 extern "C"
 {
+#include <libheif/heif.h>
+
+    heif_context *heif_context_alloc();
 
     FUNCTION_ATTRIBUTE
     const char *version()
@@ -123,7 +85,37 @@ extern "C"
 
             if (is_type(input_image_path, ".heif") || is_type(input_image_path, ".heic"))
             {
-                input = read_heif(input_image_path);
+                heif_context *ctx = heif_context_alloc();
+                heif_context_read_from_file(ctx, input_image_path, nullptr);
+
+                // get a handle to the primary image
+                heif_image_handle *handle;
+                heif_context_get_primary_image_handle(ctx, &handle);
+
+                // decode the image and convert colorspace to RGB, saved as 24bit interleaved
+                heif_image *img;
+                heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
+
+                int stride;
+                const uint8_t *data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
+
+                int width = heif_image_handle_get_width(handle);
+                int height = heif_image_handle_get_height(handle);
+
+                input = Mat(width, height, CV_8UC3);
+
+                int arr_index = 0;
+                for (int w = 0; w < width; w++)
+                {
+                    for (int h = 0; h < height; h++)
+                    {
+                        input.at<unsigned short int>(w, h, 0) = data[arr_index];
+                        input.at<unsigned short int>(w, h, 1) = data[arr_index + 1];
+                        input.at<unsigned short int>(w, h, 2) = data[arr_index + 2];
+
+                        arr_index += 3;
+                    }
+                }
             }
             else
             {

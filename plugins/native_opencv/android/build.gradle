@@ -49,7 +49,7 @@ android {
                 // Enabling exceptions, RTTI
                 // And setting C++ standard version
                 cppFlags '-frtti -fexceptions -std=c++11'
-
+                
                 // Shared runtime for shared libraries
                 arguments "-DANDROID_STL=c++_shared"
             }
@@ -62,7 +62,9 @@ android {
 
     externalNativeBuild {
         cmake {
+            // path "CMakeLists.txt"
             path "CMakeLists.txt"
+            path "../include/libheif/CMakeLists.txt"
         }
     }
 }
