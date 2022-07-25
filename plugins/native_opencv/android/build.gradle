@@ -52,6 +52,7 @@ android {
                 
                 // Shared runtime for shared libraries
                 arguments "-DANDROID_STL=c++_shared"
+            
             }
         }
     }
