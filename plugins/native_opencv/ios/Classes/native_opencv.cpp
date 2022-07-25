@@ -1,6 +1,8 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 
+#include <stdio.h>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #define IS_WIN32
 #endif
@@ -83,31 +85,26 @@ extern "C"
 
             if (is_type(input_image_path, ".heif") || is_type(input_image_path, ".heic"))
             {
+                // FILE *text = fopen(input_image_path, "r");
+                // fseek(text, 0L, SEEK_END);
+                // long sz = ftell(text);
+                // fclose(text);
+                // platform_log("== file len: %d", sz);
+
                 platform_log("== try loading heic");
                 heif_context *ctx = heif_context_alloc();
                 heif_context_read_from_file(ctx, input_image_path, nullptr);
 
-                int image_count = heif_context_get_number_of_top_level_images(ctx);
-
-                platform_log("== got image count: %d", image_count);
-
-                if (image_count == 0)
-                {
-                    platform_log("No images found in %d", input_image_path);
-                    return 0;
-                }
-
-                heif_context_get_primary_image_ID(ctx, *primary_image_id);
-                heif_item_id primary_image_id;
-
-                platform_log("== got top level id");
-
+                platform_log("== get heic handle");
                 // get a handle to the primary image
                 heif_image_handle *handle;
-                heif_context_get_image_handle(ctx, primary_image_id, &handle);
+                heif_context_get_primary_image_handle(ctx, &handle);
 
                 heif_image *img;
                 heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
+
+                platform_log("== color space: %d", heif_image_get_colorspace(img));
+                platform_log("== color profile: %d", heif_image_get_color_profile_type(img));
 
                 platform_log("== decode heic done");
 
@@ -118,9 +115,15 @@ extern "C"
                 platform_log("== height heic: %d", height);
 
                 int stride = 0;
-                const uint8_t *data = heif_image_get_plane(img, heif_channel_interleaved, &stride);
+                const uint8_t *data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
 
                 platform_log("== read heic done, len %d, stride %d", sizeof(data) / sizeof(uint8_t));
+
+                if (data == nullptr)
+                {
+                    platform_log("Got null pointer for %s", input_image_path);
+                    return 0;
+                }
 
                 input = Mat(width, height, CV_8UC3);
 
@@ -132,7 +135,8 @@ extern "C"
 
                 for (int x = 0; x < len; x++)
                 {
-                    platform_log("%s:", data[x]);
+                    platform_log("  print %d", x);
+                    platform_log("%d:", data[x]);
                 }
 
                 platform_log("======== done");
