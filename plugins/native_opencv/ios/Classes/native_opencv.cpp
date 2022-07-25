@@ -83,37 +83,78 @@ extern "C"
 
             if (is_type(input_image_path, ".heif") || is_type(input_image_path, ".heic"))
             {
+                platform_log("== try loading heic");
                 heif_context *ctx = heif_context_alloc();
                 heif_context_read_from_file(ctx, input_image_path, nullptr);
 
+                int image_count = heif_context_get_number_of_top_level_images(ctx);
+
+                platform_log("== got image count: %d", image_count);
+
+                if (image_count == 0)
+                {
+                    platform_log("No images found in %d", input_image_path);
+                    return 0;
+                }
+
+                heif_context_get_primary_image_ID(ctx, *primary_image_id);
+                heif_item_id primary_image_id;
+
+                platform_log("== got top level id");
+
                 // get a handle to the primary image
                 heif_image_handle *handle;
-                heif_context_get_primary_image_handle(ctx, &handle);
+                heif_context_get_image_handle(ctx, primary_image_id, &handle);
 
-                // decode the image and convert colorspace to RGB, saved as 24bit interleaved
                 heif_image *img;
                 heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
 
-                int stride;
-                const uint8_t *data = heif_image_get_plane_readonly(img, heif_channel_interleaved, &stride);
+                platform_log("== decode heic done");
 
                 int width = heif_image_handle_get_width(handle);
                 int height = heif_image_handle_get_height(handle);
 
+                platform_log("== width heic: %d", width);
+                platform_log("== height heic: %d", height);
+
+                int stride = 0;
+                const uint8_t *data = heif_image_get_plane(img, heif_channel_interleaved, &stride);
+
+                platform_log("== read heic done, len %d, stride %d", sizeof(data) / sizeof(uint8_t));
+
                 input = Mat(width, height, CV_8UC3);
 
-                int arr_index = 0;
-                for (int w = 0; w < width; w++)
-                {
-                    for (int h = 0; h < height; h++)
-                    {
-                        input.at<unsigned short int>(w, h, 0) = data[arr_index];
-                        input.at<unsigned short int>(w, h, 1) = data[arr_index + 1];
-                        input.at<unsigned short int>(w, h, 2) = data[arr_index + 2];
+                platform_log("== input assigned");
 
-                        arr_index += 3;
-                    }
+                int len = sizeof(data) / sizeof(uint8_t);
+
+                platform_log("======== start");
+
+                for (int x = 0; x < len; x++)
+                {
+                    platform_log("%s:", data[x]);
                 }
+
+                platform_log("======== done");
+
+                // int arr_index = 0;
+                // for (int w = 0; w < width; w++)
+                // {
+                //     for (int h = 0; h < height; h++)
+                //     {
+
+                //         platform_log("== arr index: %d", arr_index);
+
+                //         platform_log("data[0]: %d", data[arr_index]);
+                //         // data[arr_index] = input.at<uint8_t>(w, h, 0);
+                //         // data[arr_index + 1] = input.at<uint8_t>(w, h, 1);
+                //         // data[arr_index + 2] = input.at<uint8_t>(w, h, 2);
+
+                //         arr_index += 3;
+                //     }
+                // }
+
+                heif_image_release(img);
             }
             else
             {
