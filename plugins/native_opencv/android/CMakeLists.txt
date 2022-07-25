@@ -7,21 +7,12 @@ set_target_properties(lib_opencv PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SO
 
 find_library(log-lib log)
 
-add_library(native_opencv SHARED ../ios/Classes/native_opencv.cpp)
+include_directories(../include/libheif)
 
-set( PROJECT_VERSION 1.0 )
-set( PROJECT_VERSION_MAJOR 1.0 )
-
-set( libheif_src_DIR ../include/libheif/libheif )
-
-add_library( libheif STATIC IMPORTED )
+add_library( libheif STATIC IMPORTED)
 set_target_properties( libheif PROPERTIES IMPORTED_LOCATION
-                        ${CMAKE_SOURCE_DIR}/../include/build-libheif/${ANDROID_ABI}/libheif/libheif.so
-                    )
+                      ${CMAKE_CURRENT_SOURCE_DIR}/../include/build-libheif/${ANDROID_ABI}/libheif/libheif.so )
 
-include_directories(${CMAKE_SOURCE_DIR}/${libheif_src_DIR})
-
-target_link_libraries( native_opencv ... libheif )
-
+add_library(native_opencv SHARED ../ios/Classes/native_opencv.cpp)
 
 target_link_libraries(native_opencv lib_opencv libheif ${log-lib})

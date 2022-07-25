@@ -61,11 +61,11 @@ bool is_type(string path, string f_type)
     return &path[extensionIdx] == f_type;
 }
 
+#include <libheif/heif.h>
+
 // Avoiding name mangling
 extern "C"
 {
-#include <libheif/heif.h>
-
     FUNCTION_ATTRIBUTE
     const char *version()
     {
