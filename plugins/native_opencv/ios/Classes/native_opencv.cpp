@@ -1,7 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <chrono>
 
-#include <stdio.h>
+#include <libheif/heif.h>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #define IS_WIN32
@@ -63,8 +63,6 @@ bool is_type(string path, string f_type)
     return &path[extensionIdx] == f_type;
 }
 
-#include <libheif/heif.h>
-
 // Avoiding name mangling
 extern "C"
 {
@@ -85,26 +83,28 @@ extern "C"
 
             if (is_type(input_image_path, ".heif") || is_type(input_image_path, ".heic"))
             {
-                // FILE *text = fopen(input_image_path, "r");
-                // fseek(text, 0L, SEEK_END);
-                // long sz = ftell(text);
-                // fclose(text);
-                // platform_log("== file len: %d", sz);
 
                 platform_log("== try loading heic");
                 heif_context *ctx = heif_context_alloc();
                 heif_context_read_from_file(ctx, input_image_path, nullptr);
 
                 platform_log("== get heic handle");
+
+                heif_item_id primary_id;
+
+                heif_context_get_primary_image_ID(ctx, &primary_id);
+
+                platform_log("primary image id: %d", primary_id);
+
                 // get a handle to the primary image
                 heif_image_handle *handle;
-                heif_context_get_primary_image_handle(ctx, &handle);
+                heif_context_get_image_handle(ctx, primary_id, &handle);
 
                 heif_image *img;
                 heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
 
-                platform_log("== color space: %d", heif_image_get_colorspace(img));
-                platform_log("== color profile: %d", heif_image_get_color_profile_type(img));
+                // platform_log("== color space: %d", heif_image_get_colorspace(img));
+                // platform_log("== color profile: %d", heif_image_get_color_profile_type(img));
 
                 platform_log("== decode heic done");
 
