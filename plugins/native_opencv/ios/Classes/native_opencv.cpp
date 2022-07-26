@@ -86,8 +86,9 @@ extern "C"
 
                 platform_log("== try loading heic");
                 heif_context *ctx = heif_context_alloc();
-                heif_context_read_from_file(ctx, input_image_path, nullptr);
+                heif_error read_err = heif_context_read_from_file(ctx, input_image_path, nullptr);
 
+                platform_log("== read file: %d", read_err.code);
                 platform_log("== get heic handle");
 
                 int total_images = heif_context_get_number_of_top_level_images(ctx);

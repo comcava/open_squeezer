@@ -11,13 +11,17 @@ set_target_properties(lib_opencv PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SO
 
 find_library(log-lib log)
 
-include_directories(../include/libheif)
+add_library( libde265 SHARED IMPORTED)
+set_target_properties( libde265 PROPERTIES IMPORTED_LOCATION
+                       ${CMAKE_CURRENT_SOURCE_DIR}/../include/build-libde/${ANDROID_ABI}/libde265/libde265.so )
 
-find_library(libheif libheif)
-# add_library( libheif STATIC IMPORTED)
-# set_target_properties( libheif PROPERTIES IMPORTED_LOCATION
-#                       ${CMAKE_CURRENT_SOURCE_DIR}/../include/build-libheif/${ANDROID_ABI}/libheif/libheif.so )
+include_directories(../include/libheif)
+add_library( libheif SHARED IMPORTED)
+set_target_properties( libheif PROPERTIES IMPORTED_LOCATION
+                       ${CMAKE_CURRENT_SOURCE_DIR}/../include/build-libheif/${ANDROID_ABI}/libheif/libheif.so )
 
 add_library(native_opencv SHARED ../ios/Classes/native_opencv.cpp)
 
-target_link_libraries(native_opencv lib_opencv ${libheif} ${log-lib})
+link_libraries(libheif libde265)
+
+target_link_libraries(native_opencv lib_opencv libheif ${log-lib})
