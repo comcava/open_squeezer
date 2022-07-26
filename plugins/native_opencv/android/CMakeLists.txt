@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.4.1)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/conan_build/conanbuildinfo.cmake)
+set(CMAKE_CXX_COMPILER_VERSION "8") # Unknown miss-detection of the compiler by CMake
+conan_basic_setup(TARGETS)
+
 include_directories(../include)
 
 add_library(lib_opencv SHARED IMPORTED)
@@ -9,10 +13,11 @@ find_library(log-lib log)
 
 include_directories(../include/libheif)
 
-add_library( libheif STATIC IMPORTED)
-set_target_properties( libheif PROPERTIES IMPORTED_LOCATION
-                      ${CMAKE_CURRENT_SOURCE_DIR}/../include/build-libheif/${ANDROID_ABI}/libheif/libheif.so )
+find_library(libheif libheif)
+# add_library( libheif STATIC IMPORTED)
+# set_target_properties( libheif PROPERTIES IMPORTED_LOCATION
+#                       ${CMAKE_CURRENT_SOURCE_DIR}/../include/build-libheif/${ANDROID_ABI}/libheif/libheif.so )
 
 add_library(native_opencv SHARED ../ios/Classes/native_opencv.cpp)
 
-target_link_libraries(native_opencv lib_opencv libheif ${log-lib})
+target_link_libraries(native_opencv lib_opencv ${libheif} ${log-lib})

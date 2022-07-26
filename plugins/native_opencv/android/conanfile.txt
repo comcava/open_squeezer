@@ -1,0 +1,6 @@
+
+[requires]libheif/1.12.0
+
+[generators]
+CMakeDeps
+cmake

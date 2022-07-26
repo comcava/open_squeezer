@@ -46,12 +46,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# TODO: remove, these images are a few mb
-assets/test
+/android/app/conan_build
 
 # native_opencv downloaded and extracted files
 scripts/download
 plugins/native_opencv/android/src/main/jniLibs
+plugins/native_opencv/android/conan_build
 plugins/native_opencv/include
 plugins/native_opencv/ios/opencv2.framework
 plugins/native_opencv/ios/Classes/libheif
