@@ -20,6 +20,16 @@ cp -r OpenCV-android-sdk/sdk/native/libs/* ../../plugins/native_opencv/android/s
 
 echo "Downloading libheif"
 
+IBDE265_VERSION=1.0.2
+wget -O libde265-${LIBDE265_VERSION}.tar.gz https://github.com/strukturag/libde265/releases/download/v${LIBDE265_VERSION}/libde265-${LIBDE265_VERSION}.tar.gz
+tar xf libde265-${LIBDE265_VERSION}.tar.gz
+cd libde265-${LIBDE265_VERSION}
+./autogen.sh
+
+cd ..
+emconfigure ./configure --disable-sse --disable-dec265 --disable-sherlock265
+emmake make -j${CORES}
+
 wget -O libheif-1.12.0.tar.gz https://github.com/strukturag/libheif/releases/download/v1.12.0/libheif-1.12.0.tar.gz
 tar -xvf libheif-1.12.0.tar.gz
 cp -r libheif-1.12.0 ../../plugins/native_opencv/include/

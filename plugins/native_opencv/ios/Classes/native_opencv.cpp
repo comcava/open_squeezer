@@ -90,26 +90,31 @@ extern "C"
 
                 platform_log("== get heic handle");
 
-                heif_item_id primary_id;
+                int total_images = heif_context_get_number_of_top_level_images(ctx);
+                platform_log("== total images: %d");
 
-                heif_context_get_primary_image_ID(ctx, &primary_id);
+                heif_item_id *all_ids;
+                heif_context_get_list_of_top_level_image_IDs(ctx, all_ids, total_images);
 
-                platform_log("primary image id: %d", primary_id);
+                platform_log("primary image id: %d", all_ids[0]);
 
                 // get a handle to the primary image
                 heif_image_handle *handle;
-                heif_context_get_image_handle(ctx, primary_id, &handle);
+                heif_context_get_image_handle(ctx, all_ids[0], &handle);
 
                 heif_image *img;
                 heif_decode_image(handle, &img, heif_colorspace_RGB, heif_chroma_interleaved_RGB, nullptr);
+
+                platform_log("handle width: %d", heif_image_handle_get_width(handle));
+                platform_log("handle height: %d", heif_image_handle_get_height(handle));
 
                 // platform_log("== color space: %d", heif_image_get_colorspace(img));
                 // platform_log("== color profile: %d", heif_image_get_color_profile_type(img));
 
                 platform_log("== decode heic done");
 
-                int width = heif_image_handle_get_width(handle);
-                int height = heif_image_handle_get_height(handle);
+                int width = heif_image_get_width(img, heif_channel_interleaved);
+                int height = heif_image_get_height(img, heif_channel_interleaved);
 
                 platform_log("== width heic: %d", width);
                 platform_log("== height heic: %d", height);
