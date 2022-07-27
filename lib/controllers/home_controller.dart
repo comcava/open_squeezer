@@ -186,6 +186,12 @@ class HomeController {
 
       for (var file in files) {
         String path = file["path"]!;
+
+// TODO: remove this
+        if (!path.endsWith("window.heic")) {
+          continue;
+        }
+
         print("start analyzing $path");
         var variance = open_cv_ffi.laplacianBlur(path);
         var photo = file["photo"]!;

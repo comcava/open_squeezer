@@ -68,25 +68,6 @@ android {
     }
 }
 
-// task conanInstall { 
-//     def buildDir = new File("../../plugins/native_opencv/android/conan_build")
-//     buildDir.mkdirs()
-//     // if you have problems running the command try to specify the absolute
-//     // path to conan (Known problem in MacOSX) /usr/local/bin/conan
-//     def cmmd = "conan install ../conanfile.txt --build missing --profile android"
-//     print(">> ${cmmd} \n")
-
-//     def sout = new StringBuilder(), serr = new StringBuilder()
-//     def proc = cmmd.execute(null, buildDir)
-//     proc.consumeProcessOutput(sout, serr)
-//     proc.waitFor()
-//     println "$sout $serr"
-//     if(proc.exitValue() != 0){
-//         throw new Exception("out> $sout err> $serr" + "\nCommand: ${cmmd}")
-//     }
-// }
-
-
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

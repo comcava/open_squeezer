@@ -3,6 +3,8 @@
 
 #include <libheif/heif.h>
 
+#include <stdio.h>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #define IS_WIN32
 #endif
@@ -63,6 +65,45 @@ bool is_type(string path, string f_type)
     return &path[extensionIdx] == f_type;
 }
 
+// if returns -1, there was an error
+int read_file(char *input_image_path, void *file_contents, size_t *f_size)
+{
+    FILE *img_file = fopen(input_image_path, "r");
+
+    if (NULL == img_file)
+    {
+        platform_log("file '%s' can't be opened", input_image_path);
+        fclose(img_file);
+        return -1;
+    }
+
+    fseek(img_file, 0L, SEEK_END);
+    size_t file_size = ftell(img_file);
+    *f_size = file_size;
+
+    rewind(img_file);
+
+    file_contents = calloc(1, file_size + 1);
+    if (!file_contents)
+    {
+        fclose(img_file);
+        platform_log("memory alloc fails");
+        return -1;
+    }
+
+    /* copy the file into the buffer */
+    if (1 != fread(file_contents, file_size, 1, img_file))
+    {
+        fclose(img_file);
+        free(file_contents);
+        platform_log("entire read failed for %s", input_image_path);
+        return -1;
+    }
+
+    fclose(img_file);
+    return 0;
+}
+
 // Avoiding name mangling
 extern "C"
 {
@@ -83,12 +124,39 @@ extern "C"
 
             if (is_type(input_image_path, ".heif") || is_type(input_image_path, ".heic"))
             {
+                void *file_contents;
+                size_t file_size = 9;
 
-                platform_log("== try loading heic");
+                // int read_res = read_file(input_image_path, file_contents, &file_size);
+
+                // if (read_res != 0)
+                // {
+                //     return 0;
+                // }
+
+                platform_log("== try loading heic, %d characters", file_size);
+
+                // platform_log("first 10 digits: ");
+                // for (int i = 0; i < 20; i++)
+                // {
+
+                //     platform_log("%d", ((uint8_t *)file_contents)[i]);
+                // }
+                // platform_log(" 10 digits done ===========");
+
                 heif_context *ctx = heif_context_alloc();
+                // heif_error read_err = heif_context_read_from_memory_without_copy(ctx, file_contents, file_size, nullptr);
                 heif_error read_err = heif_context_read_from_file(ctx, input_image_path, nullptr);
 
                 platform_log("== read file: %d", read_err.code);
+
+                // 0 = code ok
+                if (read_err.code != 0)
+                {
+                    // TODO: print
+                    return 0;
+                }
+
                 platform_log("== get heic handle");
 
                 int total_images = heif_context_get_number_of_top_level_images(ctx);
