@@ -1,9 +1,9 @@
+import 'package:blur_detector/services/laplacian_analyzer.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../config/constants.dart';
 import '../domain/album.dart';
-import '../services/blur_analyzer.dart';
 
 class HomeController {
   final List<PhotoAlbumItem> _photos = List.empty(growable: true);
@@ -121,7 +121,7 @@ class HomeController {
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-        var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
+        var photos = await LaplacianAnalyzer().assetsBlur(pageList);
         allPhotos.addAll(photos);
       }
 
