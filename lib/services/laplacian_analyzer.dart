@@ -12,6 +12,7 @@ import 'package:image/image.dart' as l_img;
 
 import '../config/constants.dart';
 import '../domain/album.dart';
+import '../views/home.dart';
 
 /// Arithmetic mean of the bytes in the array
 double mean(Uint8List bytes) {
@@ -106,38 +107,45 @@ Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {
 
   var windowSize = (assets.length / 5).floor();
 
-  var allItems = await Future.wait([
-    spawnIsolate(
-      assets.take(windowSize),
-      (message) async {
-        return await processThread(message);
-      },
-    ),
-    spawnIsolate(
-      assets.skip(windowSize).take(windowSize),
-      (message) async {
-        return await processThread(message);
-      },
-    ),
-    spawnIsolate(
-      assets.skip(windowSize * 2).take(windowSize),
-      (message) async {
-        return await processThread(message);
-      },
-    ),
-    spawnIsolate(
-      assets.skip(windowSize * 3).take(windowSize),
-      (message) async {
-        return await processThread(message);
-      },
-    ),
-    spawnIsolate(
-      assets.skip(windowSize * 4),
-      (message) async {
-        return await processThread(message);
-      },
-    ),
-  ]);
+  var allItems = await // Future.wait([
+      spawnIsolate(
+    assets.take(windowSize).toList(),
+    (message) {
+      AssetEntity photo = message[0];
+
+      // var file = await photo.file;
+
+      ;
+
+      return [];
+      // return await processThread(message);
+    },
+  );
+  // spawnIsolate(
+  //   assets.skip(windowSize).take(windowSize),
+  //   (message) async {
+  //     return await processThread(message);
+  //   },
+  // ),
+  // spawnIsolate(
+  //   assets.skip(windowSize * 2).take(windowSize),
+  //   (message) async {
+  //     return await processThread(message);
+  //   },
+  // ),
+  // spawnIsolate(
+  //   assets.skip(windowSize * 3).take(windowSize),
+  //   (message) async {
+  //     return await processThread(message);
+  //   },
+  // ),
+  // spawnIsolate(
+  //   assets.skip(windowSize * 4),
+  //   (message) async {
+  //     return await processThread(message);
+  //   },
+  // ),
+  // ]);
 
   List<PhotoItem> items = [];
 
@@ -152,36 +160,26 @@ Future<dynamic> spawnIsolate(
   dynamic message,
   dynamic Function(dynamic message) payloadFut,
 ) async {
-  // final isolates = IsolateHandler();
+  final isolates = IsolateHandler();
+  final stream = StreamController();
 
-  // final stream = StreamController();
+  int nameId = Random().nextInt(100000);
+  String name = "squeezer_$nameId";
 
-  // void entryPoint(dynamic context) {
-  //   final messenger = HandledIsolate.initialize(context);
+  isolates.spawn<dynamic>(
+    LaplacianIsolate.analyze,
+    name: name,
+    onReceive: (msg) {
+      print("isolate onReceive");
+      isolates.kill(name);
+      stream.add(msg);
+    },
+    onInitialized: () {
+      isolates.send(message, to: name);
+    },
+  );
 
-  //   // Triggered every time data is received from the main isolate.
-  //   messenger.listen((msg) async {
-  //     var res = await payloadFut(msg);
-  //     messenger.send(res);
-  //   });
-  // }
+  return await stream.stream.first;
 
-  // int nameId = Random().nextInt(100000);
-  // String name = "squeezer_$nameId";
-
-  // isolates.spawn<dynamic>(
-  //   entryPoint,
-  //   name: name,
-  //   onReceive: (msg) {
-  //     isolates.kill(name);
-  //     stream.add(msg);
-  //   },
-  //   onInitialized: () {
-  //     isolates.send(message, to: name);
-  //   },
-  // );
-
-  // return await stream.stream.first;
-
-  return await payloadFut(message);
+  // return await payloadFut(message);
 }
