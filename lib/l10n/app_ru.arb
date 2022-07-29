@@ -13,5 +13,6 @@
   "allClean": "Все чисто",
   "cleanAgain": "Еще раз",
   "videos": "Видео",
-  "processingAlbum": "Ищу в {name}"
+  "processingAlbum": "Ищу в {name}",
+  "noPhotos": "Нет фотографий"
 }

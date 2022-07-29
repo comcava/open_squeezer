@@ -82,7 +82,9 @@ class _HomePageState extends State<HomePage> {
 
     Widget? actionButton;
 
-    if (!_controller.isLoading || _controller.noPermissions) {
+    if (!_controller.isLoading &&
+        !_controller.noPermissions &&
+        !_controller.noPhotosVideos) {
       actionButton = FloatingActionButton(
         onPressed: () {
           _confirmDelete();
@@ -122,6 +124,10 @@ class _HomePageBody extends StatelessWidget {
       return _buildLoading(loc);
     }
 
+    if (controller.noPhotosVideos) {
+      return _buildEmpty(loc);
+    }
+
     return ListView(
       children: [
         Album(
@@ -159,16 +165,39 @@ class _HomePageBody extends StatelessWidget {
 
   Widget _buildLoading(AppLocalizations loc) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          if (controller.processingAlbumName != null) ...[
+      child: Padding(
+        padding: const EdgeInsets.all(kDefaultPadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            if (controller.processingAlbumName != null) ...[
+              const SizedBox(height: kDefaultPadding),
+              Text(loc.processingAlbum(controller.processingAlbumName!)),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmpty(AppLocalizations loc) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(kDefaultPadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.camera_roll_rounded,
+              size: kLargeIconSize,
+            ),
             const SizedBox(height: kDefaultPadding),
-            Text(loc.processingAlbum(controller.processingAlbumName!)),
-          ]
-        ],
+            Text(loc.noPhotos),
+          ],
+        ),
       ),
     );
   }

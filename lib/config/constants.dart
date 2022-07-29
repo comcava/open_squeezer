@@ -62,8 +62,20 @@ const double kLargeIconSize = 100;
 
 // Business logic related
 
-/// Threshold after which a photo will be considered blurry
-const double blurryBefore = 100;
+/// If a photo's variance is lower than this value, it will be considered blurry.
+/// Found this number just by looking at photos
+const double kLaplacianBlurThreshold = 5;
 
 /// How many photos to load at a time
 const int kPhotoPageSize = 200;
+
+/// Maximum number of large videos to show
+/// Assume there are 3 rows on a phone,
+/// then we will show up to 7 rows
+const int kMaxVideos = 21;
+
+const List<String> kScreenshotsFolders = [
+  "Screenshots",
+  "Скриншоты",
+  "Снимки экрана"
+];

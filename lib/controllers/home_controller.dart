@@ -12,6 +12,8 @@ class HomeController {
   final List<VideoItem> _videos = List.empty(growable: true);
   List<VideoItem> get videos => _videos;
 
+  bool get noPhotosVideos => _videos.isEmpty && _photos.isEmpty;
+
   PhotoIdsSet selectedPhotoIds = {};
 
   String? _processingAlbumName;
@@ -93,6 +95,8 @@ class HomeController {
     _videos.sort(
       (v1, v2) => (v2.lengthBytes ?? 0).compareTo(v1.lengthBytes ?? 0),
     );
+
+    _videos.length = min(videos.length, kMaxVideos);
   }
 
   Future<void> _loadAlbums() async {
@@ -103,15 +107,18 @@ class HomeController {
     _photos.clear();
 
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
-        hasAll: false, type: RequestType.image);
+      type: RequestType.image,
+    );
 
     for (var path in paths) {
-      if (path.isAll) {
-        continue;
-      }
-
       _processingAlbumName = path.name;
       onChanged();
+
+      bool analyzeImages = true;
+
+      if (kScreenshotsFolders.contains(path.name)) {
+        analyzeImages = false;
+      }
 
       var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
@@ -121,8 +128,19 @@ class HomeController {
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-        var photos = await LaplacianAnalyzer().assetsBlur(pageList);
-        allPhotos.addAll(photos);
+        if (analyzeImages) {
+          var photos = await _analyzePhotos(pageList);
+          allPhotos.addAll(photos);
+        } else {
+          allPhotos.addAll(
+            pageList.map(
+              (photo) => PhotoItem(
+                photo: photo,
+                varianceNum: 0,
+              ),
+            ),
+          );
+        }
       }
 
       if (allPhotos.isNotEmpty) {
@@ -135,8 +153,107 @@ class HomeController {
       }
     }
 
+    _sortPhotos();
+
     _processingAlbumName = null;
     onChanged();
+  }
+
+  _sortPhotos() {
+    if (_photos.isEmpty) {
+      return;
+    }
+
+    var screenshotIdx = _photos.indexWhere(
+      (element) => kScreenshotsFolders.contains(element.album.name),
+    );
+
+    if (screenshotIdx != -1) {
+      var screenshotsFolder = _photos.removeAt(screenshotIdx);
+      _photos.add(screenshotsFolder);
+    }
+  }
+
+  Future<List<PhotoItem>> _analyzePhotos(List<AssetEntity> photos) async {
+  // TODO: edit this
+    List<PhotoItem> processThread(Iterable<Map> files) {
+      if (files.isEmpty) {
+        return [];
+      }
+
+      List<PhotoItem> res = List.empty(growable: true);
+
+      for (var file in files) {
+        String path = file["path"]!;
+
+// TODO: remove this
+        if (!path.endsWith("window.heic")) {
+          continue;
+        }
+
+        print("start analyzing $path");
+        var variance = open_cv_ffi.laplacianBlur(path);
+        var photo = file["photo"]!;
+
+        print("                  got variance $path: $variance");
+
+        if (variance <= kLaplacianBlurThreshold) {
+          res.add(PhotoItem(photo: photo, varianceNum: variance));
+        }
+      }
+
+      return res;
+    }
+
+    List<Map> photoPaths = [];
+
+    print("getting file paths");
+    for (var photo in photos) {
+      var file = await photo.originFile;
+
+      if (file?.path == null) {
+        continue;
+      }
+
+      photoPaths.add({
+        "photo": photo,
+      });
+    }
+
+    var windowSize = (photoPaths.length / 5).floor();
+
+    print("getting file paths done. got: ${photoPaths.length}");
+
+    var allItems = await Future.wait([
+      compute(
+        processThread,
+        photoPaths.take(windowSize),
+      ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize).take(windowSize),
+      ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize * 2).take(windowSize),
+      ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize * 3).take(windowSize),
+      ),
+      compute(
+        processThread,
+        photoPaths.skip(windowSize * 4),
+      ),
+    ]);
+
+    List<PhotoItem> items = [];
+
+    for (final itemsList in allItems) {
+      items.addAll(itemsList);
+    }
+
+    return items;
   }
 
   static Future<void> openSettings() async {
