@@ -64,7 +64,8 @@ const double kLargeIconSize = 100;
 
 /// If a photo's variance is lower than this value, it will be considered blurry.
 /// Found this number just by looking at photos
-const double kLaplacianBlurThreshold = 5;
+// TODO: fix value
+const double kLaplacianBlurThreshold = 999999;
 
 /// How many photos to load at a time
 const int kPhotoPageSize = 200;

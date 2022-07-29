@@ -68,7 +68,7 @@ Future<double?> assetBlur(AssetEntity image) async {
     return null;
   }
 
-  var decoded = l_img.decodeImage(resizedBytes.buffer.asUint32List());
+  var decoded = l_img.decodeImage(resizedBytes.buffer.asUint8List());
 
   if (decoded == null) {
     print("decoded null ${image.title}");
@@ -152,34 +152,36 @@ Future<dynamic> spawnIsolate(
   dynamic message,
   dynamic Function(dynamic message) payloadFut,
 ) async {
-  final isolates = IsolateHandler();
+  // final isolates = IsolateHandler();
 
-  final stream = StreamController();
+  // final stream = StreamController();
 
-  void entryPoint(dynamic context) {
-    final messenger = HandledIsolate.initialize(context);
+  // void entryPoint(dynamic context) {
+  //   final messenger = HandledIsolate.initialize(context);
 
-    // Triggered every time data is received from the main isolate.
-    messenger.listen((msg) async {
-      var res = await payloadFut(msg);
-      messenger.send(res);
-    });
-  }
+  //   // Triggered every time data is received from the main isolate.
+  //   messenger.listen((msg) async {
+  //     var res = await payloadFut(msg);
+  //     messenger.send(res);
+  //   });
+  // }
 
-  int nameId = Random().nextInt(100000);
-  String name = "squeezer_$nameId";
+  // int nameId = Random().nextInt(100000);
+  // String name = "squeezer_$nameId";
 
-  isolates.spawn<dynamic>(
-    entryPoint,
-    name: name,
-    onReceive: (msg) {
-      isolates.kill(name);
-      stream.add(msg);
-    },
-    onInitialized: () {
-      isolates.send(message, to: name);
-    },
-  );
+  // isolates.spawn<dynamic>(
+  //   entryPoint,
+  //   name: name,
+  //   onReceive: (msg) {
+  //     isolates.kill(name);
+  //     stream.add(msg);
+  //   },
+  //   onInitialized: () {
+  //     isolates.send(message, to: name);
+  //   },
+  // );
 
-  return await stream.stream.first;
+  // return await stream.stream.first;
+
+  return await payloadFut(message);
 }
