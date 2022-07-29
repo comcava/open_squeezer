@@ -80,6 +80,55 @@ class LaplacianAnalyzer {
   }
 
   Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {
-    return [];
+    List<PhotoItem> processThread(Iterable<Map> files) {
+      if (files.isEmpty) {
+        return [];
+      }
+
+      List<PhotoItem> res = List.empty(growable: true);
+
+      for (var file in files) {
+        var photo = file["photo"]!;
+
+        var res = assetBlur(photo);
+
+        if (variance < kLaplacianBlurThreshold) {
+          res.add(PhotoItem(photo: photo, varianceNum: variance));
+        }
+      }
+    }
+
+    var windowSize = (assets.length / 5).floor();
+
+    var allItems = await Future.wait([
+      compute(
+        processThread,
+        assets.take(windowSize),
+      ),
+      compute(
+        processThread,
+        assets.skip(windowSize).take(windowSize),
+      ),
+      compute(
+        processThread,
+        assets.skip(windowSize * 2).take(windowSize),
+      ),
+      compute(
+        processThread,
+        assets.skip(windowSize * 3).take(windowSize),
+      ),
+      compute(
+        processThread,
+        assets.skip(windowSize * 4),
+      ),
+    ]);
+
+    List<PhotoItem> items = [];
+
+    for (final itemsList in allItems) {
+      items.addAll(itemsList);
+    }
+
+    return items;
   }
 }
