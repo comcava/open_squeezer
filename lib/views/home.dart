@@ -5,27 +5,17 @@ import 'package:blur_detector/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:isolate_handler/isolate_handler.dart';
+import 'package:isolate_handler/isolate_handler.dart' as ih;
+import 'package:photo_manager/photo_manager.dart' as pm;
 
+import '../domain/album.dart';
+import '../services/laplacian_analyzer.dart';
 import '../widgets/album.dart';
 import '../widgets/no_permissions.dart';
 import '../config/constants.dart';
 import '../controllers/home_controller.dart';
 
-class LaplacianIsolate {
-  static void analyze(dynamic context) {
-    print("in entry point");
-    final messenger = HandledIsolate.initialize(context);
-
-    // Triggered every time data is received from the main isolate.
-    messenger.listen((msg) async {
-      // var res = await payloadFut(msg);
-
-      // messenger.send(res);
-      messenger.send(null);
-    });
-  }
-}
+part 'home_laplacian.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);

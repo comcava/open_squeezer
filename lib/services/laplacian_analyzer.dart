@@ -83,69 +83,17 @@ Future<double?> assetBlur(AssetEntity image) async {
   return varianceNum;
 }
 
+// TODO: move away
 Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {
-  Future<List<PhotoItem>> processThread(Iterable<AssetEntity> photos) async {
-    if (photos.isEmpty) {
-      return [];
-    }
-
-    List<PhotoItem> res = List.empty(growable: true);
-
-    for (var photo in photos) {
-      var variance = await assetBlur(photo);
-
-      if (variance == null || variance < kLaplacianBlurThreshold) {
-        res.add(PhotoItem(
-          photo: photo,
-          varianceNum: variance ?? 0,
-        ));
-      }
-    }
-
-    return res;
-  }
-
   var windowSize = (assets.length / 5).floor();
 
-  var allItems = await // Future.wait([
-      spawnIsolate(
-    assets.take(windowSize).toList(),
-    (message) {
-      AssetEntity photo = message[0];
-
-      // var file = await photo.file;
-
-      ;
-
-      return [];
-      // return await processThread(message);
-    },
-  );
-  // spawnIsolate(
-  //   assets.skip(windowSize).take(windowSize),
-  //   (message) async {
-  //     return await processThread(message);
-  //   },
-  // ),
-  // spawnIsolate(
-  //   assets.skip(windowSize * 2).take(windowSize),
-  //   (message) async {
-  //     return await processThread(message);
-  //   },
-  // ),
-  // spawnIsolate(
-  //   assets.skip(windowSize * 3).take(windowSize),
-  //   (message) async {
-  //     return await processThread(message);
-  //   },
-  // ),
-  // spawnIsolate(
-  //   assets.skip(windowSize * 4),
-  //   (message) async {
-  //     return await processThread(message);
-  //   },
-  // ),
-  // ]);
+  var allItems = await Future.wait([
+    spawnIsolate(assets.take(windowSize).toList()),
+    spawnIsolate(assets.skip(windowSize).take(windowSize).toList()),
+    spawnIsolate(assets.skip(windowSize * 2).take(windowSize).toList()),
+    spawnIsolate(assets.skip(windowSize * 3).take(windowSize).toList()),
+    spawnIsolate(assets.skip(windowSize * 4).toList()),
+  ]);
 
   List<PhotoItem> items = [];
 
@@ -157,8 +105,7 @@ Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {
 }
 
 Future<dynamic> spawnIsolate(
-  dynamic message,
-  dynamic Function(dynamic message) payloadFut,
+  List<AssetEntity> message,
 ) async {
   final isolates = IsolateHandler();
   final stream = StreamController();
@@ -167,7 +114,7 @@ Future<dynamic> spawnIsolate(
   String name = "squeezer_$nameId";
 
   isolates.spawn<dynamic>(
-    LaplacianIsolate.analyze,
+    LaplacianHome.isolateHandler,
     name: name,
     onReceive: (msg) {
       print("isolate onReceive");
