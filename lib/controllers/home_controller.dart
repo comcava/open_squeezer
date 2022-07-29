@@ -1,7 +1,9 @@
-import 'package:blur_detector/services/laplacian_analyzer.dart';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../services/laplacian_analyzer.dart' as la;
 import '../config/constants.dart';
 import '../domain/album.dart';
 
@@ -129,7 +131,7 @@ class HomeController {
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
         if (analyzeImages) {
-          var photos = await _analyzePhotos(pageList);
+          var photos = await la.allAssetsBlur(pageList);
           allPhotos.addAll(photos);
         } else {
           allPhotos.addAll(
@@ -172,88 +174,6 @@ class HomeController {
       var screenshotsFolder = _photos.removeAt(screenshotIdx);
       _photos.add(screenshotsFolder);
     }
-  }
-
-  Future<List<PhotoItem>> _analyzePhotos(List<AssetEntity> photos) async {
-  // TODO: edit this
-    List<PhotoItem> processThread(Iterable<Map> files) {
-      if (files.isEmpty) {
-        return [];
-      }
-
-      List<PhotoItem> res = List.empty(growable: true);
-
-      for (var file in files) {
-        String path = file["path"]!;
-
-// TODO: remove this
-        if (!path.endsWith("window.heic")) {
-          continue;
-        }
-
-        print("start analyzing $path");
-        var variance = open_cv_ffi.laplacianBlur(path);
-        var photo = file["photo"]!;
-
-        print("                  got variance $path: $variance");
-
-        if (variance <= kLaplacianBlurThreshold) {
-          res.add(PhotoItem(photo: photo, varianceNum: variance));
-        }
-      }
-
-      return res;
-    }
-
-    List<Map> photoPaths = [];
-
-    print("getting file paths");
-    for (var photo in photos) {
-      var file = await photo.originFile;
-
-      if (file?.path == null) {
-        continue;
-      }
-
-      photoPaths.add({
-        "photo": photo,
-      });
-    }
-
-    var windowSize = (photoPaths.length / 5).floor();
-
-    print("getting file paths done. got: ${photoPaths.length}");
-
-    var allItems = await Future.wait([
-      compute(
-        processThread,
-        photoPaths.take(windowSize),
-      ),
-      compute(
-        processThread,
-        photoPaths.skip(windowSize).take(windowSize),
-      ),
-      compute(
-        processThread,
-        photoPaths.skip(windowSize * 2).take(windowSize),
-      ),
-      compute(
-        processThread,
-        photoPaths.skip(windowSize * 3).take(windowSize),
-      ),
-      compute(
-        processThread,
-        photoPaths.skip(windowSize * 4),
-      ),
-    ]);
-
-    List<PhotoItem> items = [];
-
-    for (final itemsList in allItems) {
-      items.addAll(itemsList);
-    }
-
-    return items;
   }
 
   static Future<void> openSettings() async {
