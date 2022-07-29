@@ -2,8 +2,9 @@ import 'dart:typed_data';
 
 import 'package:fast_image_resizer/fast_image_resizer.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image_edge_detection/functions.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:uuid/uuid.dart';
+
 import 'package:image/image.dart' as l_img;
 
 import '../domain/album.dart';
@@ -67,13 +68,15 @@ class LaplacianAnalyzer {
     var decoded = l_img.decodeImage(resizedBytes.buffer.asUint32List());
 
     if (decoded == null) {
-      debugPrint("couldn't decode ${image.title}");
+      print("decoded null ${image.title}");
       return null;
     }
 
-    var grayscaleBytes = decoded.getBytes(format: l_img.Format.luminance);
+    var laplacian = await applyLaplaceOnImage(decoded);
 
-    return null;
+    var varianceNum = variance(laplacian.data.buffer.asUint8List());
+
+    return PhotoItem(photo: image, varianceNum: varianceNum);
   }
 
   Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {

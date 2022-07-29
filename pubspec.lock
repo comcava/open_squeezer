@@ -244,13 +244,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.3.0"
-  flutter_fgbg:
-    dependency: "direct main"
-    description:
-      name: flutter_fgbg
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.0"
   flutter_isolate:
     dependency: transitive
     description:
@@ -338,6 +331,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.2.0"
+  image_edge_detection:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: f3e15841e93e3ff0b63014f7730b6be32dd8caae
+      url: "https://github.com/nWacky/edge_detection"
+    source: git
+    version: "0.0.3"
   intl:
     dependency: "direct main"
     description:
@@ -680,7 +682,7 @@ packages:
     source: hosted
     version: "2.0.4"
   uuid:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: uuid
       url: "https://pub.dartlang.org"
