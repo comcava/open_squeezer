@@ -170,66 +170,66 @@
 //   }
 // }
 
-// // Future<List<PhotoItem>> _processPhotos(
-// //     List<AssetEntity> photos, String tempDir) async {
-// //   List<PhotoItem> results = [];
+// Future<List<PhotoItem>> _processPhotos(
+//     List<AssetEntity> photos, String tempDir) async {
+//   List<PhotoItem> results = [];
 
-// //   for (final photo in photos) {
-// //     double? blurNum;
+//   for (final photo in photos) {
+//     double? blurNum;
 
-// //     try {
-// //       blurNum = await LaplacianBlurAnalyzer.assetBlur(photo, tempDir);
-// //     } catch (e) {
-// //       debugPrint("Error trying to find blur for ${photo.title}: $e");
-// //     }
+//     try {
+//       blurNum = await LaplacianBlurAnalyzer.assetBlur(photo, tempDir);
+//     } catch (e) {
+//       debugPrint("Error trying to find blur for ${photo.title}: $e");
+//     }
 
-// //     if (blurNum == null) {
-// //       debugPrint("Blur item is null for ${photo.title}");
-// //       continue;
-// //     }
+//     if (blurNum == null) {
+//       debugPrint("Blur item is null for ${photo.title}");
+//       continue;
+//     }
 
-// //     if (blurNum <= blurryBefore) {
-// //       results.add(PhotoItem(photo: photo, varianceNum: blurNum));
-// //     }
-// //   }
+//     if (blurNum <= blurryBefore) {
+//       results.add(PhotoItem(photo: photo, varianceNum: blurNum));
+//     }
+//   }
 
-// //   return results;
-// // }
+//   return results;
+// }
 
 // // TODO: remove
 
-// // Future<dynamic> spawnIsolate(
-// //   dynamic message,
-// //   dynamic Function(dynamic) payloadFut,
-// // ) async {
-// //   final isolates = IsolateHandler();
+// Future<dynamic> spawnIsolate(
+//   dynamic message,
+//   dynamic Function(dynamic) payloadFut,
+// ) async {
+//   final isolates = IsolateHandler();
 
-// //   final stream = StreamController();
+//   final stream = StreamController();
 
-// //   void entryPoint(dynamic context) {
-// //     final messenger = HandledIsolate.initialize(context);
+//   void entryPoint(dynamic context) {
+//     final messenger = HandledIsolate.initialize(context);
 
-// //     // Triggered every time data is received from the main isolate.
-// //     messenger.listen((msg) async {
-// //       var res = await payloadFut(msg);
-// //       messenger.send(res);
-// //     });
-// //   }
+//     // Triggered every time data is received from the main isolate.
+//     messenger.listen((msg) async {
+//       var res = await payloadFut(msg);
+//       messenger.send(res);
+//     });
+//   }
 
-// //   int nameId = Random().nextInt(100000);
-// //   String name = "blur_analyzer_$nameId";
+//   int nameId = Random().nextInt(100000);
+//   String name = "blur_analyzer_$nameId";
 
-// //   isolates.spawn<dynamic>(
-// //     entryPoint,
-// //     name: name,
-// //     onReceive: (msg) {
-// //       isolates.kill(name);
-// //       stream.add(msg);
-// //     },
-// //     onInitialized: () {
-// //       isolates.send(message, to: name);
-// //     },
-// //   );
+//   isolates.spawn<dynamic>(
+//     entryPoint,
+//     name: name,
+//     onReceive: (msg) {
+//       isolates.kill(name);
+//       stream.add(msg);
+//     },
+//     onInitialized: () {
+//       isolates.send(message, to: name);
+//     },
+//   );
 
-// //   return await stream.stream.first;
-// // }
+//   return await stream.stream.first;
+// }

@@ -1,8 +1,11 @@
+import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:fast_image_resizer/fast_image_resizer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_edge_detection/functions.dart';
+import 'package:isolate_handler/isolate_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import 'package:image/image.dart' as l_img;
@@ -104,25 +107,35 @@ Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {
   var windowSize = (assets.length / 5).floor();
 
   var allItems = await Future.wait([
-    compute(
-      processThread,
+    spawnIsolate(
       assets.take(windowSize),
+      (message) async {
+        return await processThread(message);
+      },
     ),
-    compute(
-      processThread,
+    spawnIsolate(
       assets.skip(windowSize).take(windowSize),
+      (message) async {
+        return await processThread(message);
+      },
     ),
-    compute(
-      processThread,
+    spawnIsolate(
       assets.skip(windowSize * 2).take(windowSize),
+      (message) async {
+        return await processThread(message);
+      },
     ),
-    compute(
-      processThread,
+    spawnIsolate(
       assets.skip(windowSize * 3).take(windowSize),
+      (message) async {
+        return await processThread(message);
+      },
     ),
-    compute(
-      processThread,
+    spawnIsolate(
       assets.skip(windowSize * 4),
+      (message) async {
+        return await processThread(message);
+      },
     ),
   ]);
 
@@ -133,4 +146,40 @@ Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {
   }
 
   return items;
+}
+
+Future<dynamic> spawnIsolate(
+  dynamic message,
+  dynamic Function(dynamic message) payloadFut,
+) async {
+  final isolates = IsolateHandler();
+
+  final stream = StreamController();
+
+  void entryPoint(dynamic context) {
+    final messenger = HandledIsolate.initialize(context);
+
+    // Triggered every time data is received from the main isolate.
+    messenger.listen((msg) async {
+      var res = await payloadFut(msg);
+      messenger.send(res);
+    });
+  }
+
+  int nameId = Random().nextInt(100000);
+  String name = "squeezer_$nameId";
+
+  isolates.spawn<dynamic>(
+    entryPoint,
+    name: name,
+    onReceive: (msg) {
+      isolates.kill(name);
+      stream.add(msg);
+    },
+    onInitialized: () {
+      isolates.send(message, to: name);
+    },
+  );
+
+  return await stream.stream.first;
 }
