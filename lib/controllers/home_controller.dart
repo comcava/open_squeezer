@@ -165,10 +165,17 @@ class HomeController {
           var photoVariances = await la.allAssetsBlur(pageAssets.keys);
 
           for (var photo in photoVariances) {
-            // resPhotos.add(PhotoItem(
-            //   photo: pageAssets["9"],
-            //   varianceNum: 0,
-            // ));
+            var asset = pageAssets[photo.id];
+
+            if (asset == null) {
+              // TODO: print
+              continue;
+            }
+
+            resPhotos.add(PhotoItem(
+              photo: asset,
+              varianceNum: 0,
+            ));
           }
           print("  done processing asset blur");
         }
