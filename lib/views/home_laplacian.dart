@@ -72,11 +72,31 @@ class LaplacianHome {
   static Future<List<String>> processMsg(
     List<String> messages,
   ) async {
+    Future<String> getInsertVariance(LaplacianHomeIsolateMsg message) async {
+      try {
+        var variance = await assetBlur(
+          title: message.title ?? "",
+          imagePath: message.path,
+        );
+
+        if (variance == null || variance < kLaplacianBlurThreshold) {
+          return LaplacianHomeIsolateResp(
+            id: message.id,
+            variance: variance ?? 0,
+          ).toJson();
+        }
+      } catch (e) {
+        debugPrint("Error getting variance for ");
+      }
+
+      return "";
+    }
+
     if (messages.isEmpty) {
       return [];
     }
 
-    List<String> res = List.empty(growable: true);
+    List<Future<String>> varianceFutures = List.empty(growable: true);
 
     for (var messageJson in messages) {
       var message = LaplacianHomeIsolateMsg.fromJson(messageJson);
@@ -85,18 +105,10 @@ class LaplacianHome {
         continue;
       }
 
-      var variance = await assetBlur(
-        title: message.title ?? "",
-        imagePath: message.path,
-      );
-
-      if (variance == null || variance < kLaplacianBlurThreshold) {
-        res.add(LaplacianHomeIsolateResp(
-          id: message.id,
-          variance: variance ?? 0,
-        ).toJson());
-      }
+      varianceFutures.add(getInsertVariance(message));
     }
+
+    List<String> res = await Future.wait(varianceFutures);
 
     return res;
   }

@@ -118,10 +118,10 @@ class HomeController {
       _processingAlbumName = path.name;
       onChanged();
 
-      bool analyzeImages = true;
+      bool isScreenshots = false;
 
       if (kScreenshotsFolders.contains(path.name)) {
-        analyzeImages = false;
+        isScreenshots = true;
       }
 
       var totalPages = (path.assetCount / kPhotoPageSize).ceil();
@@ -129,13 +129,16 @@ class HomeController {
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
       for (var page = 0; page < totalPages; page++) {
+        print(
+          "processing ${path.name}, page $page, isScreenshots: $isScreenshots",
+        );
+
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-        if (analyzeImages) {
-          var photos = await la.allAssetsBlur(pageList);
-          allPhotos.addAll(photos);
-        } else {
+        print("got asset list");
+
+        if (isScreenshots) {
           allPhotos.addAll(
             pageList.map(
               (photo) => PhotoItem(
@@ -144,6 +147,11 @@ class HomeController {
               ),
             ),
           );
+        } else {
+          print("start processing asset blur");
+          var photos = await la.allAssetsBlur(pageList);
+          allPhotos.addAll(photos);
+          print("done processing asset blur");
         }
       }
 

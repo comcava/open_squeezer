@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:path/path.dart' as path;
 
 import 'package:fast_image_resizer/fast_image_resizer.dart';
 import 'package:flutter/foundation.dart';
@@ -58,7 +59,7 @@ Future<double?> assetBlur({
 
   Uint8List? rawBytes = await rawImage.readAsBytes();
 
-  ByteData? resizedBytes = await resizeImage(rawBytes, width: 200);
+  ByteData? resizedBytes = await resizeImage(rawBytes, width: 150);
 
   if (resizedBytes == null) {
     debugPrint("  couldn't resize $title");
@@ -80,31 +81,51 @@ Future<double?> assetBlur({
   return varianceNum;
 }
 
-// TODO: move away
+/// Process all assets with laplacian analyzer
 Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assetsList) async {
-  var windowSize = (assetsList.length / 5).floor();
+  var windowSize = (assetsList.length / 2).floor();
 
   List<String> filePaths = List.empty(growable: true);
   Map<String, AssetEntity> assetsMap = {};
 
+  print("start finding all files");
   for (final asset in assetsList) {
     var file = await asset.originFile;
 
+    if (file == null) {
+      continue;
+    }
+
+    var title = asset.title;
+    if (kDebugMode) {
+      // we only want to load async title in debug mode
+      // for showing in logs, in production we can skip this
+      title = await asset.titleAsync;
+    }
+
+    var parentDir = path.basename(file.parent.path);
+    if (kScreenshotsFolders.contains(parentDir)) {
+      // we don't want to analyze screenshots
+      continue;
+    }
+
     filePaths.add(LaplacianHomeIsolateMsg(
       id: asset.id,
-      title: asset.title,
-      path: file?.path ?? "",
+      title: title,
+      path: file.path,
     ).toJson());
 
     assetsMap.putIfAbsent(asset.id, () => asset);
   }
 
+  print("done finding all files");
+
   var allItems = await Future.wait([
     spawnIsolate(filePaths.take(windowSize).toList()),
-    spawnIsolate(filePaths.skip(windowSize).take(windowSize).toList()),
-    spawnIsolate(filePaths.skip(windowSize * 2).take(windowSize).toList()),
-    spawnIsolate(filePaths.skip(windowSize * 3).take(windowSize).toList()),
-    spawnIsolate(filePaths.skip(windowSize * 4).toList()),
+    // spawnIsolate(filePaths.skip(windowSize).take(windowSize).toList()),
+    // spawnIsolate(filePaths.skip(windowSize * 2).take(windowSize).toList()),
+    // spawnIsolate(filePaths.skip(windowSize * 3).take(windowSize).toList()),
+    spawnIsolate(filePaths.skip(windowSize).toList()),
   ]);
 
   List<PhotoItem> photoItems = [];
