@@ -2,34 +2,116 @@
 
 part of 'home.dart';
 
+class LaplacianHomeIsolateMsg {
+  final String id;
+  final String? title;
+  final String path;
+
+  const LaplacianHomeIsolateMsg({
+    required this.id,
+    this.title,
+    required this.path,
+  });
+
+  String toJson() {
+    return jsonEncode({
+      "id": id,
+      "title": title,
+      "path": path,
+    });
+  }
+
+  static LaplacianHomeIsolateMsg? fromJson(String source) {
+    final v = jsonDecode(source);
+
+    if (v["id"] == null || v["path"] == null) {
+      return null;
+    }
+
+    return LaplacianHomeIsolateMsg(
+      id: v["id"],
+      title: v["title"],
+      path: v["path"],
+    );
+  }
+}
+
+class LaplacianHomeIsolateResp {
+  final String id;
+  final double variance;
+
+  const LaplacianHomeIsolateResp({
+    required this.id,
+    required this.variance,
+  });
+
+  String toJson() {
+    return jsonEncode({
+      "id": id,
+      "variance": variance,
+    });
+  }
+
+  static LaplacianHomeIsolateResp? fromJson(String source) {
+    final v = jsonDecode(source);
+
+    if (v["id"] == null || v["variance"] == null) {
+      return null;
+    }
+
+    return LaplacianHomeIsolateResp(
+      id: v["id"],
+      variance: v["variance"],
+    );
+  }
+}
+
 class LaplacianHome {
-  static Future<List<PhotoItem>> processMsg(List<pm.AssetEntity> photos) async {
-    if (photos.isEmpty) {
+  /// Takes a `List<LaplacianHomeIsolateMsg>`
+  /// and returns `List<LaplacianHomeIsolateResp>`
+  static Future<List<String>> processMsg(
+    List<String> messages,
+  ) async {
+    if (messages.isEmpty) {
       return [];
     }
 
-    List<PhotoItem> res = List.empty(growable: true);
+    List<String> res = List.empty(growable: true);
 
-    for (var photo in photos) {
-      var variance = await assetBlur(photo);
+    for (var messageJson in messages) {
+      var message = LaplacianHomeIsolateMsg.fromJson(messageJson);
+      if (message == null) {
+        debugPrint("Couldn't deserialize message in LaplacianHome.processMsg");
+        continue;
+      }
+
+      var variance = await assetBlur(
+        title: message.title ?? "",
+        imagePath: message.path,
+      );
 
       if (variance == null || variance < kLaplacianBlurThreshold) {
-        res.add(PhotoItem(
-          photo: photo,
-          varianceNum: variance ?? 0,
-        ));
+        res.add(LaplacianHomeIsolateResp(
+          id: message.id,
+          variance: variance ?? 0,
+        ).toJson());
       }
     }
 
     return res;
   }
 
+  /// Handle blur processing.
+  /// Should have a list of messages containing List<LaplacianHomeIsolateMsg>
   static void isolateHandler(dynamic context) async {
     final messenger = ih.HandledIsolate.initialize(context);
 
     messenger.listen((msg) async {
-      if (msg is! List<pm.AssetEntity>) {
-        debugPrint("Invalid message type in LaplacianHome.analyze, skipping");
+      if (msg is! List<String>) {
+        debugPrint(
+          """Invalid message type '${msg.runtimeType}' 
+            in LaplacianHome.analyze, skipping""",
+        );
         return;
       }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fast_image_resizer/fast_image_resizer.dart';
@@ -41,71 +42,102 @@ double variance(Uint8List bytes) {
   return variance;
 }
 
-Future<double?> assetBlur(AssetEntity image) async {
-  if (image.typeInt != AssetType.image.index) {
-    return null;
-  }
+Future<double?> assetBlur({
+  required String title,
+  required String imagePath,
+}) async {
+  var rawImage = File(imagePath);
 
-  bool exists = await image.exists;
+  bool exists = await rawImage.exists();
 
   if (!exists) {
     return null;
   }
 
-  debugPrint("processing ${image.title}");
-
-  final rawImage = await image.file;
-
-  if (rawImage == null) {
-    return null;
-  }
+  debugPrint("processing $title");
 
   Uint8List? rawBytes = await rawImage.readAsBytes();
 
   ByteData? resizedBytes = await resizeImage(rawBytes, width: 200);
 
   if (resizedBytes == null) {
-    debugPrint("couldn't resize ${image.title}");
+    debugPrint("  couldn't resize $title");
     return null;
   }
 
-  var decoded = l_img.decodeImage(resizedBytes.buffer.asUint8List());
+  var decoded = l_img.decodeImage(
+    resizedBytes.buffer.asUint8List(),
+  );
 
   if (decoded == null) {
-    print("decoded null ${image.title}");
+    debugPrint("  decoded null $title");
     return null;
   }
 
   var laplacian = await applyLaplaceOnImage(decoded);
-
   var varianceNum = variance(laplacian.data.buffer.asUint8List());
 
   return varianceNum;
 }
 
 // TODO: move away
-Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assets) async {
-  var windowSize = (assets.length / 5).floor();
+Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assetsList) async {
+  var windowSize = (assetsList.length / 5).floor();
 
-  var allItems = await Future.wait([
-    spawnIsolate(assets.take(windowSize).toList()),
-    spawnIsolate(assets.skip(windowSize).take(windowSize).toList()),
-    spawnIsolate(assets.skip(windowSize * 2).take(windowSize).toList()),
-    spawnIsolate(assets.skip(windowSize * 3).take(windowSize).toList()),
-    spawnIsolate(assets.skip(windowSize * 4).toList()),
-  ]);
+  List<String> filePaths = List.empty(growable: true);
+  Map<String, AssetEntity> assetsMap = {};
 
-  List<PhotoItem> items = [];
+  for (final asset in assetsList) {
+    var file = await asset.originFile;
 
-  for (final itemsList in allItems) {
-    items.addAll(itemsList);
+    filePaths.add(LaplacianHomeIsolateMsg(
+      id: asset.id,
+      title: asset.title,
+      path: file?.path ?? "",
+    ).toJson());
+
+    assetsMap.putIfAbsent(asset.id, () => asset);
   }
 
-  return items;
+  var allItems = await Future.wait([
+    spawnIsolate(filePaths.take(windowSize).toList()),
+    spawnIsolate(filePaths.skip(windowSize).take(windowSize).toList()),
+    spawnIsolate(filePaths.skip(windowSize * 2).take(windowSize).toList()),
+    spawnIsolate(filePaths.skip(windowSize * 3).take(windowSize).toList()),
+    spawnIsolate(filePaths.skip(windowSize * 4).toList()),
+  ]);
+
+  List<PhotoItem> photoItems = [];
+
+  for (final itemJson in allItems.expand((l) => l)) {
+    final item = LaplacianHomeIsolateResp.fromJson(itemJson);
+
+    if (item == null) {
+      continue;
+    }
+
+    var photo = assetsMap[item.id];
+
+    if (photo == null) {
+      debugPrint("no photo with id ${item.id} in assetsMap");
+      continue;
+    }
+
+    photoItems.add(
+      PhotoItem(
+        photo: photo,
+        varianceNum: item.variance,
+      ),
+    );
+  }
+
+  return photoItems;
 }
 
+/// Message should be of type
+/// `List<LaplacianHomeIsolateMsg.toJson()>`
 Future<dynamic> spawnIsolate(
-  List<AssetEntity> message,
+  List<String> message,
 ) async {
   final isolates = IsolateHandler();
   final stream = StreamController();
@@ -127,6 +159,4 @@ Future<dynamic> spawnIsolate(
   );
 
   return await stream.stream.first;
-
-  // return await payloadFut(message);
 }
