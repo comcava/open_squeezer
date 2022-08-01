@@ -4,34 +4,26 @@ part of 'home.dart';
 
 class LaplacianHomeIsolateMsg {
   final String id;
-  final String? title;
-  final String path;
 
   const LaplacianHomeIsolateMsg({
     required this.id,
-    this.title,
-    required this.path,
   });
 
   String toJson() {
     return jsonEncode({
       "id": id,
-      "title": title,
-      "path": path,
     });
   }
 
   static LaplacianHomeIsolateMsg? fromJson(String source) {
     final v = jsonDecode(source);
 
-    if (v["id"] == null || v["path"] == null) {
+    if (v["id"] == null) {
       return null;
     }
 
     return LaplacianHomeIsolateMsg(
       id: v["id"],
-      title: v["title"],
-      path: v["path"],
     );
   }
 }
@@ -67,31 +59,37 @@ class LaplacianHomeIsolateResp {
 }
 
 class LaplacianHome {
+  static Future<String> getVariance(LaplacianHomeIsolateMsg message) async {
+    try {
+      var asset = await pm.AssetEntity.fromId(message.id);
+
+      if (asset == null) {
+        print("asset is null for ${message.id}");
+        return "";
+      }
+
+      var variance = await assetBlur(asset);
+
+      if (variance == 0) {
+        print("variance 0 for ${message.id}");
+      }
+
+      return LaplacianHomeIsolateResp(
+        id: message.id,
+        variance: variance ?? 0,
+      ).toJson();
+    } catch (e) {
+      debugPrint("Error getting variance for ");
+    }
+
+    return "";
+  }
+
   /// Takes a `List<LaplacianHomeIsolateMsg>`
   /// and returns `List<LaplacianHomeIsolateResp>`
   static Future<List<String>> processMsg(
     List<String> messages,
   ) async {
-    Future<String> getInsertVariance(LaplacianHomeIsolateMsg message) async {
-      try {
-        var variance = await assetBlur(
-          title: message.title ?? "",
-          imagePath: message.path,
-        );
-
-        if (variance == null || variance < kLaplacianBlurThreshold) {
-          return LaplacianHomeIsolateResp(
-            id: message.id,
-            variance: variance ?? 0,
-          ).toJson();
-        }
-      } catch (e) {
-        debugPrint("Error getting variance for ");
-      }
-
-      return "";
-    }
-
     if (messages.isEmpty) {
       return [];
     }
@@ -105,7 +103,7 @@ class LaplacianHome {
         continue;
       }
 
-      varianceFutures.add(getInsertVariance(message));
+      varianceFutures.add(getVariance(message));
     }
 
     List<String> res = await Future.wait(varianceFutures);

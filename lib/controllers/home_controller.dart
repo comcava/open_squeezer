@@ -128,9 +128,11 @@ class HomeController {
         isScreenshots = true;
       }
 
-      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      // TODO: fix
+      var totalPages = 1;
+      // var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
-      List<PhotoItem> allPhotos = List.empty(growable: true);
+      List<PhotoItem> resPhotos = List.empty(growable: true);
 
       for (var page = 0; page < totalPages; page++) {
         print(
@@ -143,7 +145,7 @@ class HomeController {
         print("got asset list");
 
         if (isScreenshots) {
-          allPhotos.addAll(
+          resPhotos.addAll(
             pageList.map(
               (photo) => PhotoItem(
                 photo: photo,
@@ -153,17 +155,30 @@ class HomeController {
           );
         } else {
           print("start processing asset blur");
-          var photos = await la.allAssetsBlur(pageList);
-          allPhotos.addAll(photos);
+
+          Map<String, AssetEntity> pageAssets = {};
+
+          for (var photo in pageList) {
+            pageAssets.putIfAbsent(photo.id, () => photo);
+          }
+
+          var photoVariances = await la.allAssetsBlur(pageAssets.keys);
+
+          for (var photo in photoVariances) {
+            // resPhotos.add(PhotoItem(
+            //   photo: pageAssets["9"],
+            //   varianceNum: 0,
+            // ));
+          }
           print("  done processing asset blur");
         }
       }
 
-      if (allPhotos.isNotEmpty) {
+      if (resPhotos.isNotEmpty) {
         _photos.add(
           PhotoAlbumItem(
             album: path,
-            photos: allPhotos,
+            photos: resPhotos,
           ),
         );
       }

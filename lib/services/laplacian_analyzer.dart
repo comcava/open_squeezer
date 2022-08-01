@@ -52,27 +52,38 @@ Future<ByteData?> resizeImage(Uint8List rawImage,
   return resizedImage.toByteData(format: ui.ImageByteFormat.rawRgba);
 }
 
-Future<double?> assetBlur({
-  required String title,
-  required String imagePath,
-}) async {
-  var rawImage = File(imagePath);
+Future<double?> assetBlur(AssetEntity image) async {
+  if (image.typeInt != AssetType.image.index) {
+    return null;
+  }
 
-  bool exists = await rawImage.exists();
+  bool exists = await image.exists;
 
   if (!exists) {
     return null;
   }
 
-  debugPrint("processing photo '$title'");
+  var title = image.title;
+  if (kDebugMode) {
+    // title is only used for logging.
+    // we won't need to load it in production
+    title = await image.titleAsync;
+  }
 
-  Uint8List? rawBytes = await rawImage.readAsBytes();
+  debugPrint("processing image '$title'");
+
+  Uint8List? rawBytes = await image.thumbnailData;
+
+  if (rawBytes == null || rawBytes.isEmpty) {
+    debugPrint("  rawBytes is empty for '$title'");
+    return null;
+  }
 
   const resizedWidth = 100;
   ByteData? resizedBytes = await resizeImage(rawBytes, width: resizedWidth);
 
   if (resizedBytes == null) {
-    debugPrint("  couldn't resize $title");
+    debugPrint("couldn't resize ${image.title}");
     return null;
   }
 
@@ -86,93 +97,56 @@ Future<double?> assetBlur({
     format: l_img.Format.rgba,
   );
 
-  print("decoded '$title' size: w: ${decoded.width}, h: ${decoded.height}");
-
-  if (decoded == null) {
-    debugPrint("  decoded null $title");
-    return null;
-  }
-
-  // laplacian does grayscale automatically
   var laplacian = await applyLaplaceOnImage(decoded);
 
-  var varianceNum = variance(
-    laplacian.getBytes(format: l_img.Format.luminance),
-  );
+  var varianceNum = variance(laplacian.data.buffer.asUint8List());
 
-  print("variance '$title': $varianceNum");
+  print("got variance: $varianceNum");
 
   return varianceNum;
 }
 
 /// Process all assets with laplacian analyzer
-Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assetsList) async {
-  var windowSize = (assetsList.length / 2).floor();
+Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
+  Iterable<String> assetsIds,
+) async {
+  var windowSize = (assetsIds.length / 2).floor();
 
-  List<String> filePaths = List.empty(growable: true);
-  Map<String, AssetEntity> assetsMap = {};
+  List<String> messages = List.empty(growable: true);
 
   print("start finding all files");
-  for (final asset in assetsList) {
-    var file = await asset.file;
-
-    if (file == null) {
-      continue;
-    }
-
-    var title = asset.title;
-    if (kDebugMode) {
-      // we only want to load async title in debug mode
-      // for showing in logs, in production we can skip this
-      title = await asset.titleAsync;
-    }
-
-    filePaths.add(LaplacianHomeIsolateMsg(
-      id: asset.id,
-      title: title,
-      path: file.path,
-    ).toJson());
-
-    assetsMap.putIfAbsent(asset.id, () => asset);
+  for (final assetId in assetsIds) {
+    messages.add(
+      LaplacianHomeIsolateMsg(id: assetId).toJson(),
+    );
   }
 
   print("done finding all files");
 
-  var allItems = await Future.wait([
-    spawnIsolate(filePaths.take(windowSize).toList()),
-    spawnIsolate(filePaths.skip(windowSize).toList()),
+  List<List<String>> allItems = await Future.wait([
+    spawnIsolate(messages.take(windowSize).toList()),
+    spawnIsolate(messages.skip(windowSize).toList()),
   ]);
 
-  List<PhotoItem> photoItems = [];
+  List<LaplacianHomeIsolateResp> responses = List.empty(growable: true);
 
-  for (final itemJson in allItems.expand((l) => l)) {
-    final item = LaplacianHomeIsolateResp.fromJson(itemJson);
+  for (var respJson in allItems.expand((l) => l).toList()) {
+    var r = LaplacianHomeIsolateResp.fromJson(respJson);
 
-    if (item == null) {
+    if (r == null) {
       continue;
     }
 
-    var photo = assetsMap[item.id];
-
-    if (photo == null) {
-      debugPrint("no photo with id ${item.id} in assetsMap");
-      continue;
-    }
-
-    photoItems.add(
-      PhotoItem(
-        photo: photo,
-        varianceNum: item.variance,
-      ),
-    );
+    responses.add(r);
   }
 
-  return photoItems;
+  return responses;
 }
 
+// TODO: reuse isolate
 /// Message should be of type
 /// `List<LaplacianHomeIsolateMsg.toJson()>`
-Future<dynamic> spawnIsolate(
+Future<List<String>> spawnIsolate(
   List<String> message,
 ) async {
   final isolates = IsolateHandler();
@@ -190,9 +164,16 @@ Future<dynamic> spawnIsolate(
       stream.add(msg);
     },
     onInitialized: () {
+      print("isolate oninit");
       isolates.send(message, to: name);
     },
   );
 
-  return await stream.stream.first;
+  var firstMsg = await stream.stream.first;
+
+  if (firstMsg is! List<String>) {
+    return [];
+  }
+
+  return firstMsg;
 }
