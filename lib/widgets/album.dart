@@ -148,6 +148,7 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
     var data = await widget.item.photo.thumbnailData;
 
     if (data == null) {
+      print("data null for ${widget.item.photo.title}");
       return;
     }
 
@@ -192,8 +193,8 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
                 alignment: Alignment.center,
                 child: Text(
                   "v: ${widget.item.varianceNum}",
-                  style:
-                      theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: Color.fromARGB(255, 193, 193, 193)),
                 ),
               ),
               Align(

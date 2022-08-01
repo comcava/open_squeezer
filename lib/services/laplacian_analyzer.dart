@@ -68,7 +68,7 @@ Future<double?> assetBlur({
 
   Uint8List? rawBytes = await rawImage.readAsBytes();
 
-  const resizedWidth = 150;
+  const resizedWidth = 100;
   ByteData? resizedBytes = await resizeImage(rawBytes, width: resizedWidth);
 
   if (resizedBytes == null) {
@@ -76,11 +76,8 @@ Future<double?> assetBlur({
     return null;
   }
 
-  var resizedHeight = (resizedBytes.lengthInBytes / 150 / 4).ceil();
-
-  // var decodedR = l_img.decodeImage(
-  //   rawBytes.buffer.asUint8List(),
-  // );
+  // 4 channels in rgba
+  var resizedHeight = (resizedBytes.lengthInBytes / resizedWidth / 4).ceil();
 
   var decoded = l_img.Image.fromBytes(
     resizedWidth,
@@ -89,7 +86,7 @@ Future<double?> assetBlur({
     format: l_img.Format.rgba,
   );
 
-  print("decoded '$title' size: w: ${decoded?.width}, h: ${decoded?.height}");
+  print("decoded '$title' size: w: ${decoded.width}, h: ${decoded.height}");
 
   if (decoded == null) {
     debugPrint("  decoded null $title");
@@ -117,7 +114,7 @@ Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assetsList) async {
 
   print("start finding all files");
   for (final asset in assetsList) {
-    var file = await asset.originFile;
+    var file = await asset.file;
 
     if (file == null) {
       continue;
@@ -128,12 +125,6 @@ Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assetsList) async {
       // we only want to load async title in debug mode
       // for showing in logs, in production we can skip this
       title = await asset.titleAsync;
-    }
-
-    var parentDir = path.basename(file.parent.path);
-    if (kScreenshotsFolders.contains(parentDir)) {
-      // we don't want to analyze screenshots
-      continue;
     }
 
     filePaths.add(LaplacianHomeIsolateMsg(

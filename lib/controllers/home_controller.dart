@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:isolate_handler/isolate_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../services/laplacian_analyzer.dart' as la;
@@ -38,6 +37,9 @@ class HomeController {
 
     _isLoading = true;
     onChanged();
+
+    await clearCache();
+
     await Future.wait([_loadAlbums(), _loadVideos()]);
     _isLoading = false;
     onChanged();
@@ -78,7 +80,9 @@ class HomeController {
     );
 
     for (final path in paths) {
-      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      // TODO: fix
+      // var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      var totalPages = 1;
 
       for (var page = 0; page <= totalPages; page++) {
         var videos =
