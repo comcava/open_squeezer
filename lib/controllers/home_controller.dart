@@ -151,7 +151,7 @@ class HomeController {
           print("start processing asset blur");
           var photos = await la.allAssetsBlur(pageList);
           allPhotos.addAll(photos);
-          print("done processing asset blur");
+          print("  done processing asset blur");
         }
       }
 

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'dart:typed_data';
 import 'package:path/path.dart' as path;
 
-import 'package:fast_image_resizer/fast_image_resizer.dart';
+// import 'package:fast_image_resizer/fast_image_resizer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_edge_detection/functions.dart';
 import 'package:isolate_handler/isolate_handler.dart';
@@ -43,6 +44,14 @@ double variance(Uint8List bytes) {
   return variance;
 }
 
+Future<ByteData?> resizeImage(Uint8List rawImage,
+    {int? width, int? height}) async {
+  final codec = await ui.instantiateImageCodec(rawImage,
+      targetWidth: width, targetHeight: height);
+  final resizedImage = (await codec.getNextFrame()).image;
+  return resizedImage.toByteData(format: ui.ImageByteFormat.rawRgba);
+}
+
 Future<double?> assetBlur({
   required String title,
   required String imagePath,
@@ -59,24 +68,42 @@ Future<double?> assetBlur({
 
   Uint8List? rawBytes = await rawImage.readAsBytes();
 
-  ByteData? resizedBytes = await resizeImage(rawBytes, width: 150);
+  const resizedWidth = 150;
+  ByteData? resizedBytes = await resizeImage(rawBytes, width: resizedWidth);
 
   if (resizedBytes == null) {
     debugPrint("  couldn't resize $title");
     return null;
   }
 
-  var decoded = l_img.decodeImage(
+  var resizedHeight = (resizedBytes.lengthInBytes / 150 / 4).ceil();
+
+  // var decodedR = l_img.decodeImage(
+  //   rawBytes.buffer.asUint8List(),
+  // );
+
+  var decoded = l_img.Image.fromBytes(
+    resizedWidth,
+    resizedHeight,
     resizedBytes.buffer.asUint8List(),
+    format: l_img.Format.rgba,
   );
+
+  print("decoded '$title' size: w: ${decoded?.width}, h: ${decoded?.height}");
 
   if (decoded == null) {
     debugPrint("  decoded null $title");
     return null;
   }
 
+  // laplacian does grayscale automatically
   var laplacian = await applyLaplaceOnImage(decoded);
-  var varianceNum = variance(laplacian.data.buffer.asUint8List());
+
+  var varianceNum = variance(
+    laplacian.getBytes(format: l_img.Format.luminance),
+  );
+
+  print("variance '$title': $varianceNum");
 
   return varianceNum;
 }
@@ -122,9 +149,6 @@ Future<List<PhotoItem>> allAssetsBlur(List<AssetEntity> assetsList) async {
 
   var allItems = await Future.wait([
     spawnIsolate(filePaths.take(windowSize).toList()),
-    // spawnIsolate(filePaths.skip(windowSize).take(windowSize).toList()),
-    // spawnIsolate(filePaths.skip(windowSize * 2).take(windowSize).toList()),
-    // spawnIsolate(filePaths.skip(windowSize * 3).take(windowSize).toList()),
     spawnIsolate(filePaths.skip(windowSize).toList()),
   ]);
 
