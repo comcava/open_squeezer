@@ -1,15 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:blur_detector/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:isolate_handler/isolate_handler.dart' as ih;
+import 'package:photo_manager/photo_manager.dart' as pm;
 
+import '../domain/album.dart';
+import '../services/laplacian_analyzer.dart';
 import '../widgets/album.dart';
 import '../widgets/no_permissions.dart';
 import '../config/constants.dart';
 import '../controllers/home_controller.dart';
+
+part 'home_laplacian.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -82,7 +89,9 @@ class _HomePageState extends State<HomePage> {
 
     Widget? actionButton;
 
-    if (!_controller.isLoading || _controller.noPermissions) {
+    if (!_controller.isLoading &&
+        !_controller.noPermissions &&
+        !_controller.noPhotosVideos) {
       actionButton = FloatingActionButton(
         onPressed: () {
           _confirmDelete();
@@ -122,6 +131,10 @@ class _HomePageBody extends StatelessWidget {
       return _buildLoading(loc);
     }
 
+    if (controller.noPhotosVideos) {
+      return _buildEmpty(loc);
+    }
+
     return ListView(
       children: [
         Album(
@@ -159,16 +172,39 @@ class _HomePageBody extends StatelessWidget {
 
   Widget _buildLoading(AppLocalizations loc) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          if (controller.processingAlbumName != null) ...[
+      child: Padding(
+        padding: const EdgeInsets.all(kDefaultPadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            if (controller.processingAlbumName != null) ...[
+              const SizedBox(height: kDefaultPadding),
+              Text(loc.processingAlbum(controller.processingAlbumName!)),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmpty(AppLocalizations loc) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(kDefaultPadding),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.camera_roll_rounded,
+              size: kLargeIconSize,
+            ),
             const SizedBox(height: kDefaultPadding),
-            Text(loc.processingAlbum(controller.processingAlbumName!)),
-          ]
-        ],
+            Text(loc.noPhotos),
+          ],
+        ),
       ),
     );
   }

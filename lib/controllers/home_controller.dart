@@ -1,9 +1,12 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../services/laplacian_analyzer.dart' as la;
 import '../config/constants.dart';
 import '../domain/album.dart';
-import '../services/blur_analyzer.dart';
 
 class HomeController {
   final List<PhotoAlbumItem> _photos = List.empty(growable: true);
@@ -11,6 +14,8 @@ class HomeController {
 
   final List<VideoItem> _videos = List.empty(growable: true);
   List<VideoItem> get videos => _videos;
+
+  bool get noPhotosVideos => _videos.isEmpty && _photos.isEmpty;
 
   PhotoIdsSet selectedPhotoIds = {};
 
@@ -32,6 +37,9 @@ class HomeController {
 
     _isLoading = true;
     onChanged();
+
+    await clearCache();
+
     await Future.wait([_loadAlbums(), _loadVideos()]);
     _isLoading = false;
     onChanged();
@@ -72,7 +80,9 @@ class HomeController {
     );
 
     for (final path in paths) {
-      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      // TODO: fix
+      // var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      var totalPages = 1;
 
       for (var page = 0; page <= totalPages; page++) {
         var videos =
@@ -93,6 +103,8 @@ class HomeController {
     _videos.sort(
       (v1, v2) => (v2.lengthBytes ?? 0).compareTo(v1.lengthBytes ?? 0),
     );
+
+    _videos.length = min(videos.length, kMaxVideos);
   }
 
   Future<void> _loadAlbums() async {
@@ -103,26 +115,48 @@ class HomeController {
     _photos.clear();
 
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
-        hasAll: false, type: RequestType.image);
+      type: RequestType.image,
+    );
 
     for (var path in paths) {
-      if (path.isAll) {
-        continue;
-      }
-
       _processingAlbumName = path.name;
       onChanged();
+
+      bool isScreenshots = false;
+
+      if (kScreenshotsFolders.contains(path.name)) {
+        isScreenshots = true;
+      }
 
       var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
       List<PhotoItem> allPhotos = List.empty(growable: true);
 
       for (var page = 0; page < totalPages; page++) {
+        print(
+          "processing ${path.name}, page $page, isScreenshots: $isScreenshots",
+        );
+
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-        var photos = await LaplacianBlurAnalyzer().assetBlur4Futures(pageList);
-        allPhotos.addAll(photos);
+        print("got asset list");
+
+        if (isScreenshots) {
+          allPhotos.addAll(
+            pageList.map(
+              (photo) => PhotoItem(
+                photo: photo,
+                varianceNum: 0,
+              ),
+            ),
+          );
+        } else {
+          print("start processing asset blur");
+          var photos = await la.allAssetsBlur(pageList);
+          allPhotos.addAll(photos);
+          print("  done processing asset blur");
+        }
       }
 
       if (allPhotos.isNotEmpty) {
@@ -135,8 +169,25 @@ class HomeController {
       }
     }
 
+    _sortPhotos();
+
     _processingAlbumName = null;
     onChanged();
+  }
+
+  _sortPhotos() {
+    if (_photos.isEmpty) {
+      return;
+    }
+
+    var screenshotIdx = _photos.indexWhere(
+      (element) => kScreenshotsFolders.contains(element.album.name),
+    );
+
+    if (screenshotIdx != -1) {
+      var screenshotsFolder = _photos.removeAt(screenshotIdx);
+      _photos.add(screenshotsFolder);
+    }
   }
 
   static Future<void> openSettings() async {

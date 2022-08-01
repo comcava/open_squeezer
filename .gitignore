@@ -46,5 +46,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# TODO: remove, these images are a few mb
-assets/test
+# TODO: remove, these folders are from trying to use .so library
+plugins/
+scripts/
