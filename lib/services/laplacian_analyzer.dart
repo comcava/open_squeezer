@@ -54,7 +54,7 @@ Future<double?> assetBlur({
     return null;
   }
 
-  debugPrint("processing $title");
+  debugPrint("processing photo '$title'");
 
   Uint8List? rawBytes = await rawImage.readAsBytes();
 
