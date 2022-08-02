@@ -72,7 +72,7 @@ class LaplacianIsolate {
 
     print("start sendPayload");
 
-    stream!.add(message);
+    isolates.send(message, to: name);
 
     var event = await stream!.stream.first;
 
@@ -81,10 +81,13 @@ class LaplacianIsolate {
 
     List<String> respMessage;
     if (event is! List<String>) {
+      print("event is not List<String>, is ${event.runtimeType}");
       respMessage = [];
     } else {
       respMessage = event;
     }
+
+    print("done send payload");
 
     return respMessage;
   }

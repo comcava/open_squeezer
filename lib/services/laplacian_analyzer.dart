@@ -54,16 +54,6 @@ Future<ByteData?> resizeImage(Uint8List rawImage,
 }
 
 Future<double?> assetBlur(AssetEntity image) async {
-  if (image.typeInt != AssetType.image.index) {
-    return null;
-  }
-
-  bool exists = await image.exists;
-
-  if (!exists) {
-    return null;
-  }
-
   var title = image.title;
   if (kDebugMode) {
     // title is only used for logging.
@@ -71,12 +61,24 @@ Future<double?> assetBlur(AssetEntity image) async {
     title = await image.titleAsync;
   }
 
+  if (image.typeInt != AssetType.image.index) {
+    print("'$title' is not AssetType.image");
+    return null;
+  }
+
+  bool exists = await image.exists;
+
+  if (!exists) {
+    print("'$title' does not exist");
+    return null;
+  }
+
   debugPrint("processing image '$title'");
 
   Uint8List? rawBytes = await image.thumbnailData;
 
   if (rawBytes == null || rawBytes.isEmpty) {
-    debugPrint("  rawBytes is empty for '$title'");
+    debugPrint("rawBytes is empty for '$title'");
     return null;
   }
 
@@ -110,7 +112,7 @@ Future<double?> assetBlur(AssetEntity image) async {
 /// Process all assets with laplacian analyzer
 Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
     Iterable<String> assetsIds, LaplacianIsolate isolate) async {
-  var windowSize = (assetsIds.length / 2).floor();
+  // var windowSize = (assetsIds.length / 2).floor();
 
   List<String> messages = List.empty(growable: true);
 
@@ -121,7 +123,7 @@ Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
     );
   }
 
-  print("done finding all files");
+  print("done finding all files, ${assetsIds.length}");
 
   // List<List<String>> allItems = ;
 

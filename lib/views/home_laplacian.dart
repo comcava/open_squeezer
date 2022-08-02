@@ -70,7 +70,7 @@ class LaplacianHome {
 
       var variance = await assetBlur(asset);
 
-      if (variance == 0) {
+      if (variance == null || variance == 0) {
         print("variance 0 for ${message.id}");
       }
 
@@ -126,6 +126,8 @@ class LaplacianHome {
       }
 
       var res = await LaplacianHome.processMsg(msg);
+
+      print("got laplacian isolate string result: '$res'");
 
       messenger.send(res);
     });

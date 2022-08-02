@@ -159,13 +159,13 @@ class HomeController {
             ),
           );
         } else {
-          print("start processing asset blur");
-
           Map<String, AssetEntity> pageAssets = {};
 
           for (var photo in pageList) {
             pageAssets.putIfAbsent(photo.id, () => photo);
           }
+
+          print("start processing asset blur, ${pageAssets.length}");
 
           var photoVariances = await la.allAssetsBlur(pageAssets.keys, isolate);
 
