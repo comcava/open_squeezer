@@ -82,7 +82,7 @@ Future<double?> assetBlur(AssetEntity image) async {
     return null;
   }
 
-  const resizedWidth = 100;
+  const resizedWidth = 150;
   ByteData? resizedBytes = await resizeImage(rawBytes, width: resizedWidth);
 
   if (resizedBytes == null) {
@@ -100,13 +100,73 @@ Future<double?> assetBlur(AssetEntity image) async {
     format: l_img.Format.rgba,
   );
 
-  var laplacian = await applyLaplaceOnImage(decoded);
+  var varianceColor = variance(decoded.data.buffer.asUint8List());
+  print("got color variance for $title: $varianceColor");
 
-  var varianceNum = variance(laplacian.data.buffer.asUint8List());
+  var laplacian = await applySobelOnImage(decoded);
 
-  print("got variance: $varianceNum");
+  var varianceNum = variance(
+    laplacian.getBytes(
+      format: l_img.Format.luminance,
+    ),
+  );
+
+  print("got laplacian variance for $title: $varianceNum");
 
   return varianceNum;
+}
+
+// TODO: remove
+Future<l_img.Image?> assetBlur1(AssetEntity image) async {
+  var title = image.title;
+  if (kDebugMode) {
+    // title is only used for logging.
+    // we won't need to load it in production
+    title = await image.titleAsync;
+  }
+
+  if (image.typeInt != AssetType.image.index) {
+    print("'$title' is not AssetType.image");
+    return null;
+  }
+
+  bool exists = await image.exists;
+
+  if (!exists) {
+    print("'$title' does not exist");
+    return null;
+  }
+
+  debugPrint("processing image '$title'");
+
+  Uint8List? rawBytes = await image.thumbnailData;
+
+  if (rawBytes == null || rawBytes.isEmpty) {
+    debugPrint("rawBytes is empty for '$title'");
+    return null;
+  }
+
+  const resizedWidth = 150;
+  ByteData? resizedBytes = await resizeImage(rawBytes, width: resizedWidth);
+
+  if (resizedBytes == null) {
+    debugPrint("couldn't resize ${image.title}");
+    return null;
+  }
+
+  // 4 channels in rgba
+  var resizedHeight = (resizedBytes.lengthInBytes / resizedWidth / 4).ceil();
+
+  var decoded = l_img.Image.fromBytes(
+    resizedWidth,
+    resizedHeight,
+    resizedBytes.buffer.asUint8List(),
+    format: l_img.Format.rgba,
+  );
+
+  var laplacian = await applySobelOnImage(decoded);
+
+  return laplacian;
 }
 
 /// Process all assets with laplacian analyzer

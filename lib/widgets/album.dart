@@ -1,5 +1,11 @@
+import 'dart:typed_data';
+
+import 'package:blur_detector/services/laplacian_analyzer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import 'package:image_edge_detection/functions.dart';
+import 'package:image/image.dart' as l_img;
 
 import '../config/constants.dart';
 import '../domain/album.dart';
@@ -145,12 +151,17 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
   }
 
   _fetchImage() async {
-    var data = await widget.item.photo.thumbnailData;
+    // var data = await widget.item.photo.thumbnailData;
 
-    if (data == null) {
-      print("data null for ${widget.item.photo.title}");
-      return;
-    }
+    // if (data == null) {
+    //   print("data null for ${widget.item.photo.title}");
+    //   return;
+    // }
+
+// TODO: remove
+    var i = await assetBlur1(widget.item.photo);
+
+    var data = Uint8List.fromList(l_img.encodePng(i!));
 
     _imageWidget ??= Image.memory(
       data,
