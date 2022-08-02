@@ -18,9 +18,14 @@ import '../config/constants.dart';
 import '../domain/album.dart';
 import '../views/home.dart';
 
+const int kWhiteThreshold = 230;
+
 /// Arithmetic mean of the bytes in the array
 double mean(Uint8List bytes) {
-  int sum = bytes.reduce((value, element) => value += element);
+  int sum = bytes.reduce((value, element) {
+    return value += element;
+  });
+
   int n = bytes.length;
 
   return sum / n;
@@ -31,20 +36,27 @@ double mean(Uint8List bytes) {
 double variance(Uint8List bytes) {
   var n = bytes.length;
 
-  var average = mean(bytes);
+  // var average = mean(bytes);
+  var average = 255 / 2;
+  print("image mean: $average");
 
   double sqDifferencesSum = 0;
 
   for (var byte in bytes) {
-    var diff = byte - average;
-    sqDifferencesSum += diff * diff;
+    if (byte > kWhiteThreshold) {
+      var diff = byte - average;
+      sqDifferencesSum += diff * diff;
+    }
   }
 
   var variance = sqDifferencesSum / (n - 1);
 
+  print("variance = $sqDifferencesSum / ($n - 1) = $variance");
+
   return variance;
 }
 
+/// From fast_image_resizer
 Future<ByteData?> resizeImage(Uint8List rawImage,
     {int? width, int? height}) async {
   final codec = await ui.instantiateImageCodec(rawImage,
@@ -166,7 +178,23 @@ Future<l_img.Image?> assetBlur1(AssetEntity image) async {
 
   var laplacian = await applySobelOnImage(decoded);
 
-  return laplacian;
+  List<int> newLBytes = laplacian
+      .getBytes(
+    format: l_img.Format.luminance,
+  )
+      .map((e) {
+    if (e < kWhiteThreshold) {
+      return 0;
+    }
+
+    return e;
+  }).toList();
+
+  var laplacian1 = l_img.Image.fromBytes(
+      laplacian.width, laplacian.height, newLBytes,
+      format: l_img.Format.luminance);
+
+  return laplacian1;
 }
 
 /// Process all assets with laplacian analyzer
