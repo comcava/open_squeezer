@@ -7,16 +7,16 @@ import '../views/home.dart';
 
 class LaplacianIsolate {
   final isolates = IsolateHandler();
-  final stream = StreamController();
+  StreamController? stream;
 
   late String name;
   bool _isInit = false;
 
   LaplacianIsolate() {
-    _spawnIsolate();
-
     int nameId = Random().nextInt(100000);
     name = "squeezer_$nameId";
+
+    _spawnIsolate();
   }
 
   /// Message should be of type
@@ -27,16 +27,19 @@ class LaplacianIsolate {
       name: name,
       onReceive: (msg) {
         print("isolate onReceive");
-        stream.add(msg);
+        stream?.add(msg);
       },
       onInitialized: () {
         print("isolate oninit");
         _isInit = true;
       },
     );
+
+    print("done spawnIsolate");
   }
 
   Future<void> waitInit() async {
+    print("start waitInit");
     if (_isInit) {
       return Future.value();
     }
@@ -51,7 +54,11 @@ class LaplacianIsolate {
     }
 
     check();
-    return completer.future;
+    await completer.future;
+
+    print("done wait.init");
+
+    return;
   }
 
   /// Send all payload messages to an isolate.
@@ -61,27 +68,23 @@ class LaplacianIsolate {
       throw "Uninitialized. Use waitInit() to wait before the isolate is initialized";
     }
 
-    stream.add(message);
+    stream = StreamController();
 
-    // List<List<String>> respMessages = List.empty(growable: true);
-    List<String> respMessage = [];
-    // var messagesLeft = messages.length;
+    print("start sendPayload");
 
-    var completer = Completer();
+    stream!.add(message);
 
-    stream.stream.listen((event) {
-      if (event is! List<String>) {
-        respMessage = [];
-        // messagesLeft -= 1;
+    var event = await stream!.stream.first;
 
-        // if (messagesLeft <= 0) {
-        stream.stream.listen((event) {});
-        completer.complete();
-        // }
-      }
-    });
+    await stream!.close();
+    stream = null;
 
-    await completer.future;
+    List<String> respMessage;
+    if (event is! List<String>) {
+      respMessage = [];
+    } else {
+      respMessage = event;
+    }
 
     return respMessage;
   }

@@ -119,6 +119,10 @@ class HomeController {
       type: RequestType.image,
     );
 
+    LaplacianIsolate isolate = LaplacianIsolate();
+
+    await isolate.waitInit();
+
     for (var path in paths) {
       _processingAlbumName = path.name;
       onChanged();
@@ -134,10 +138,6 @@ class HomeController {
       // var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
       List<PhotoItem> resPhotos = List.empty(growable: true);
-
-      LaplacianIsolate isolate = LaplacianIsolate();
-
-      await isolate.waitInit();
 
       for (var page = 0; page < totalPages; page++) {
         print(
@@ -182,7 +182,7 @@ class HomeController {
               varianceNum: photo.variance,
             ));
           }
-          print("  done processing asset blur");
+          print("  done processing asset blur, ${resPhotos.length}");
         }
       }
 
@@ -195,6 +195,8 @@ class HomeController {
         );
       }
     }
+
+    isolate.kill();
 
     _sortPhotos();
 

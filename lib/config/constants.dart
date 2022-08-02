@@ -68,7 +68,7 @@ const double kLargeIconSize = 100;
 const double kLaplacianBlurThreshold = 999999;
 
 /// How many photos to load at a time
-const int kPhotoPageSize = 1;
+const int kPhotoPageSize = 10;
 
 /// Maximum number of large videos to show
 /// Assume there are 3 rows on a phone,
