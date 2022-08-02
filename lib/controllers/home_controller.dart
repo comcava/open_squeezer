@@ -177,10 +177,12 @@ class HomeController {
               continue;
             }
 
-            resPhotos.add(PhotoItem(
-              photo: asset,
-              varianceNum: photo.variance,
-            ));
+            if (photo.variance < kLaplacianVarianceThreshold) {
+              resPhotos.add(PhotoItem(
+                photo: asset,
+                varianceNum: photo.variance,
+              ));
+            }
           }
           print("  done processing asset blur, ${resPhotos.length}");
         }

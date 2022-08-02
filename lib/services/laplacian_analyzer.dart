@@ -18,31 +18,49 @@ import '../config/constants.dart';
 import '../domain/album.dart';
 import '../views/home.dart';
 
+/// The threshold before which
+/// we consider the pixel black.
+/// Pixels representing edges are considered white.
 const int kWhiteThreshold = 230;
 
-/// Arithmetic mean of the bytes in the array
-double mean(Uint8List bytes) {
-  int sum = bytes.reduce((value, element) {
-    return value += element;
-  });
-
-  int n = bytes.length;
-
-  return sum / n;
-}
+/// Mean of the pixels. It is hardcoded to be
+/// `(255 (white) - 0 (black)) / 2`, because
+/// otherwise the mean was close to 0 for
+/// mostly blurry images:
+/// ```
+///                   ┌─            2  ─┐
+///               sum │  ( i - avg )    │
+///                   └─               ─┘
+///                    i
+///  variance  =      ─────────────────────
+///                          n - 1
+///
+/// ```
+///
+/// where `n` - number of images, `avg` - arithmetic mean.
+///
+/// For *mostly blurry* images the variance was high,
+/// as `avg` was low (close to 0) and `i` was sometimes high (a few
+/// white pixels).
+///
+/// For *sharp images* the variance was high,
+/// as the `avg` was about medium (close to 100) and `i` was
+/// sometimes high and sometimes low (some white and some black pixels).
+const double average = 255 / 2;
 
 /// Estimated population variance.
 /// Based on https://stackoverflow.com/a/47252945/14110680
 double variance(Uint8List bytes) {
   var n = bytes.length;
 
-  // var average = mean(bytes);
-  var average = 255 / 2;
-  print("image mean: $average");
-
   double sqDifferencesSum = 0;
 
   for (var byte in bytes) {
+    // we only want to count in white pixels,
+    // only they represent the useful payload for us.
+    //
+    // otherwise (255 - 127) and (0 - 127) are the
+    // same value.
     if (byte > kWhiteThreshold) {
       var diff = byte - average;
       sqDifferencesSum += diff * diff;
@@ -50,8 +68,6 @@ double variance(Uint8List bytes) {
   }
 
   var variance = sqDifferencesSum / (n - 1);
-
-  print("variance = $sqDifferencesSum / ($n - 1) = $variance");
 
   return variance;
 }

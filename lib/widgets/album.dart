@@ -151,17 +151,16 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
   }
 
   _fetchImage() async {
-    // var data = await widget.item.photo.thumbnailData;
+    var data = await widget.item.photo.thumbnailData;
 
-    // if (data == null) {
-    //   print("data null for ${widget.item.photo.title}");
-    //   return;
-    // }
+    if (data == null) {
+      debugPrint("data null for ${widget.item.photo.title}");
+      return;
+    }
 
 // TODO: remove
-    var i = await assetBlur1(widget.item.photo);
-
-    var data = Uint8List.fromList(l_img.encodePng(i!));
+    // var i = await assetBlur1(widget.item.photo);
+    // var data = Uint8List.fromList(l_img.encodePng(i!));
 
     _imageWidget ??= Image.memory(
       data,
