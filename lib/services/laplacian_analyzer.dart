@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'package:blur_detector/services/laplacian_isolate.dart';
 import 'package:path/path.dart' as path;
 
 // import 'package:fast_image_resizer/fast_image_resizer.dart';
@@ -108,8 +109,7 @@ Future<double?> assetBlur(AssetEntity image) async {
 
 /// Process all assets with laplacian analyzer
 Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
-  Iterable<String> assetsIds,
-) async {
+    Iterable<String> assetsIds, LaplacianIsolate isolate) async {
   var windowSize = (assetsIds.length / 2).floor();
 
   List<String> messages = List.empty(growable: true);
@@ -123,14 +123,13 @@ Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
 
   print("done finding all files");
 
-  List<List<String>> allItems = await Future.wait([
-    spawnIsolate(messages.take(windowSize).toList()),
-    spawnIsolate(messages.skip(windowSize).toList()),
-  ]);
+  // List<List<String>> allItems = ;
+
+  List<String> allItems = await isolate.sendPayload(messages);
 
   List<LaplacianHomeIsolateResp> responses = List.empty(growable: true);
 
-  for (var respJson in allItems.expand((l) => l).toList()) {
+  for (var respJson in allItems) {
     var r = LaplacianHomeIsolateResp.fromJson(respJson);
 
     if (r == null) {
@@ -141,39 +140,4 @@ Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
   }
 
   return responses;
-}
-
-// TODO: reuse isolate
-/// Message should be of type
-/// `List<LaplacianHomeIsolateMsg.toJson()>`
-Future<List<String>> spawnIsolate(
-  List<String> message,
-) async {
-  final isolates = IsolateHandler();
-  final stream = StreamController();
-
-  int nameId = Random().nextInt(100000);
-  String name = "squeezer_$nameId";
-
-  isolates.spawn<dynamic>(
-    LaplacianHome.isolateHandler,
-    name: name,
-    onReceive: (msg) {
-      print("isolate onReceive");
-      isolates.kill(name);
-      stream.add(msg);
-    },
-    onInitialized: () {
-      print("isolate oninit");
-      isolates.send(message, to: name);
-    },
-  );
-
-  var firstMsg = await stream.stream.first;
-
-  if (firstMsg is! List<String>) {
-    return [];
-  }
-
-  return firstMsg;
 }

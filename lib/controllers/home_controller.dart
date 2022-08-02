@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:blur_detector/services/laplacian_isolate.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -134,6 +135,10 @@ class HomeController {
 
       List<PhotoItem> resPhotos = List.empty(growable: true);
 
+      LaplacianIsolate isolate = LaplacianIsolate();
+
+      await isolate.waitInit();
+
       for (var page = 0; page < totalPages; page++) {
         print(
           "processing ${path.name}, page $page, isScreenshots: $isScreenshots",
@@ -162,7 +167,7 @@ class HomeController {
             pageAssets.putIfAbsent(photo.id, () => photo);
           }
 
-          var photoVariances = await la.allAssetsBlur(pageAssets.keys);
+          var photoVariances = await la.allAssetsBlur(pageAssets.keys, isolate);
 
           for (var photo in photoVariances) {
             var asset = pageAssets[photo.id];
@@ -174,7 +179,7 @@ class HomeController {
 
             resPhotos.add(PhotoItem(
               photo: asset,
-              varianceNum: 0,
+              varianceNum: photo.variance,
             ));
           }
           print("  done processing asset blur");
