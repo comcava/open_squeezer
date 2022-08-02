@@ -134,8 +134,11 @@ class HomeController {
       }
 
       // TODO: fix
-      var totalPages = 1;
-      // var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      // var totalPages = 1;
+      var totalPages = min(
+        (path.assetCount / kPhotoPageSize).ceil(),
+        kPhotoMaxPages,
+      );
 
       List<PhotoItem> resPhotos = List.empty(growable: true);
 
