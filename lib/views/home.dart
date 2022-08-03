@@ -8,7 +8,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:isolate_handler/isolate_handler.dart' as ih;
 import 'package:photo_manager/photo_manager.dart' as pm;
-import 'package:photo_manager/photo_manager.dart';
 
 import '../domain/album.dart';
 import '../services/laplacian_analyzer.dart';

@@ -20,7 +20,7 @@ class LaplacianIsolate {
   }
 
   /// Message should be of type
-  /// `List<LaplacianHomeIsolateMsg.toJson()>`
+  /// `List<LaplacianHomeIsolateMsg.toJson()>`.
   Future<void> _spawnIsolate() async {
     isolates.spawn<dynamic>(
       LaplacianHome.isolateHandler,

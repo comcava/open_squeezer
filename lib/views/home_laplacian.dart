@@ -124,8 +124,9 @@ class LaplacianHome {
   static void isolateHandler(dynamic context) async {
     final messenger = ih.HandledIsolate.initialize(context);
 
+    pm.PhotoManager.setIgnorePermissionCheck(true);
+
 // TODO: toast if doesn't exist
-    await PhotoManager.requestPermissionExtend();
 
     messenger.listen((msg) async {
       if (msg is! List<String>) {
