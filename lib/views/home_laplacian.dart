@@ -16,6 +16,10 @@ class LaplacianHomeIsolateMsg {
   }
 
   static LaplacianHomeIsolateMsg? fromJson(String source) {
+    if (source.isEmpty) {
+      return null;
+    }
+
     final v = jsonDecode(source);
 
     if (v["id"] == null) {
@@ -45,6 +49,10 @@ class LaplacianHomeIsolateResp {
   }
 
   static LaplacianHomeIsolateResp? fromJson(String source) {
+    if (source.isEmpty) {
+      return null;
+    }
+
     final v = jsonDecode(source);
 
     if (v["id"] == null || v["variance"] == null) {
