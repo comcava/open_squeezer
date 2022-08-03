@@ -161,7 +161,10 @@ class HomeController {
             pageAssets.putIfAbsent(photo.id, () => photo);
           }
 
-          var photoVariances = await isolate.allAssetsBlur(pageAssets.keys);
+          var photoVariances = await isolate.allAssetsBlur(
+            assetsIds: pageAssets.keys,
+            idsLength: pageAssets.length,
+          );
 
           for (var photo in photoVariances) {
             var asset = pageAssets[photo.id];

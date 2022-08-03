@@ -7,68 +7,115 @@ import 'package:isolate_handler/isolate_handler.dart';
 import '../views/home.dart';
 
 class LaplacianIsolate {
-  final _isolates = IsolateHandler();
-  StreamController? _stream;
+  final _isolate1 = IsolateHandler();
+  StreamController? _stream1;
+  late String name1;
 
-  late String name;
-  bool _isInit = false;
+  final _isolate2 = IsolateHandler();
+  StreamController? _stream2;
+  late String name2;
+
+  bool _isInit1 = false;
+  bool _isInit2 = false;
 
   LaplacianIsolate() {
-    int nameId = Random().nextInt(100000);
-    name = "squeezer_$nameId";
+    int name1Id = Random().nextInt(100000);
+    name1 = "squeezer_$name1Id";
 
-    _spawnIsolate();
+    int name2Id = Random().nextInt(100000);
+    name2 = "squeezer_$name2Id";
+
+    _spawnIsolates();
   }
 
   /// Message should be of type
   /// `List<LaplacianHomeIsolateMsg.toJson()>`.
-  Future<void> _spawnIsolate() async {
-    _isolates.spawn<dynamic>(
+  Future<void> _spawnIsolates() async {
+    _isolate1.spawn<dynamic>(
       LaplacianHomeIsolate.isolateHandler,
-      name: name,
+      name: name1,
       onReceive: (msg) {
-        _stream?.add(msg);
+        _stream1?.add(msg);
       },
       onInitialized: () {
-        _isInit = true;
+        _isInit1 = true;
+      },
+    );
+
+    _isolate2.spawn<dynamic>(
+      LaplacianHomeIsolate.isolateHandler,
+      name: name2,
+      onReceive: (msg) {
+        _stream1?.add(msg);
+      },
+      onInitialized: () {
+        _isInit2 = true;
       },
     );
   }
 
+  /// Wait for all isolates to start
   Future<void> waitInit() async {
-    if (_isInit) {
+    const checkDuration = Duration(milliseconds: 10);
+
+    if (_isInit1 && _isInit2) {
       return Future.value();
     }
 
-    var completer = Completer();
-    check() {
-      if (_isInit) {
-        completer.complete();
+    var completer1 = Completer();
+    check1() {
+      if (_isInit1) {
+        completer1.complete();
       } else {
-        Timer(const Duration(milliseconds: 50), check);
+        Timer(checkDuration, check1);
       }
     }
 
-    check();
-    await completer.future;
-  }
+    var completer2 = Completer();
+    check2() {
+      if (_isInit2) {
+        completer2.complete();
+      } else {
+        Timer(checkDuration, check2);
+      }
+    }
 
-// TODO: consider using two isolates
+    check1();
+    check2();
+    await Future.wait([
+      completer1.future,
+      completer2.future,
+    ]);
+  }
 
   /// Calculate blur for all assets with laplacian analyzer.
   /// Will send all the payload to an isolate
   Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
-    Iterable<String> assetsIds,
-  ) async {
-    List<String> messages = List.empty(growable: true);
+      {required Iterable<String> assetsIds, required int idsLength}) async {
+    final windowSize = (idsLength / 2).floor();
 
+    List<String> messages1 = List.empty(growable: true);
+    List<String> messages2 = List.empty(growable: true);
+
+    int assetsIdx = 0;
     for (final assetId in assetsIds) {
-      messages.add(
-        LaplacianHomeIsolateMsg(id: assetId).toJson(),
-      );
+      if (assetsIdx <= windowSize) {
+        messages1.add(
+          LaplacianHomeIsolateMsg(id: assetId).toJson(),
+        );
+      } else {
+        messages2.add(
+          LaplacianHomeIsolateMsg(id: assetId).toJson(),
+        );
+      }
+
+      assetsIdx++;
     }
 
-    List<String> allItems = await _sendPayload(messages);
+    List<String> allItems = await _sendPayload(
+      message1: messages1,
+      message2: messages2,
+    );
 
     List<LaplacianHomeIsolateResp> responses = List.empty(growable: true);
 
@@ -85,34 +132,52 @@ class LaplacianIsolate {
     return responses;
   }
 
-  Future<List<String>> _sendPayload(List<String> message) async {
-    if (!_isInit) {
+  Future<List<String>> _sendPayload({
+    required List<String> message1,
+    required List<String> message2,
+  }) async {
+    if (!_isInit1 || !_isInit2) {
       throw "Uninitialized. Use waitInit() to wait before the isolate is initialized";
     }
 
-    _stream = StreamController();
+    _stream1 = StreamController();
+    _isolate1.send(message1, to: name1);
 
-    _isolates.send(message, to: name);
+    _stream2 = StreamController();
+    _isolate2.send(message2, to: name1);
 
-    var event = await _stream!.stream.first;
+    var events1 = await _stream1!.stream.first;
+    var events2 = await _stream2!.stream.first;
 
-    await _stream!.close();
-    _stream = null;
+    await _stream1!.close();
+    _stream1 = null;
 
-    List<String> respMessage;
-    if (event is! List<String>) {
+    await _stream2!.close();
+    _stream2 = null;
+
+    List<String> respMessages = [];
+
+    if (events1 is! List<String>) {
       debugPrint(
-        "sendPayload event is not List<String>, is ${event.runtimeType}",
+        "sendPayload event is not List<String>, is ${events1.runtimeType}",
       );
-      respMessage = [];
     } else {
-      respMessage = event;
+      respMessages = events1;
     }
 
-    return respMessage;
+    if (events2 is! List<String>) {
+      debugPrint(
+        "sendPayload event is not List<String>, is ${events2.runtimeType}",
+      );
+    } else {
+      respMessages.addAll(events2);
+    }
+
+    return respMessages;
   }
 
   void kill() {
-    _isolates.kill(name);
+    _isolate1.kill(name1);
+    _isolate2.kill(name2);
   }
 }
