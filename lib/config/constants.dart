@@ -73,9 +73,8 @@ const int kPhotoPageSize = 50;
 const int kPhotoMaxPages = 20;
 
 /// Maximum number of large videos to show
-/// Assume there are 3 rows on a phone,
-/// then we will show up to 7 rows
-const int kMaxVideos = 21;
+/// Assume there are 3 rows on a phone
+const int kMaxVideos = 3 * 4;
 
 const List<String> kScreenshotsFolders = [
   "Screenshots",

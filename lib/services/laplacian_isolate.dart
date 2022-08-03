@@ -6,6 +6,7 @@ import 'package:isolate_handler/isolate_handler.dart';
 
 import '../views/home.dart';
 
+/// Calculate laplacian on 2 isolates
 class LaplacianIsolate {
   final _isolates = IsolateHandler();
   StreamController? _stream;
@@ -52,8 +53,6 @@ class LaplacianIsolate {
     check();
     await completer.future;
   }
-
-// TODO: consider using two isolates
 
   /// Calculate blur for all assets with laplacian analyzer.
   /// Will send all the payload to an isolate
