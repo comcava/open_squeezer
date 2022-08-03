@@ -133,12 +133,10 @@ class HomeController {
         isScreenshots = true;
       }
 
-      // TODO: fix
-      var totalPages = 1;
-      // var totalPages = min(
-      //   (path.assetCount / kPhotoPageSize).ceil(),
-      //   kPhotoMaxPages,
-      // );
+      var totalPages = min(
+        (path.assetCount / kPhotoPageSize).ceil(),
+        kPhotoMaxPages,
+      );
 
       List<PhotoItem> resPhotos = List.empty(growable: true);
 
@@ -180,13 +178,12 @@ class HomeController {
               continue;
             }
 
-// TODO: fix
-            // if (photo.variance < kLaplacianVarianceThreshold) {
-            resPhotos.add(PhotoItem(
-              photo: asset,
-              varianceNum: photo.variance,
-            ));
-            // }
+            if (photo.variance < kLaplacianVarianceThreshold) {
+              resPhotos.add(PhotoItem(
+                photo: asset,
+                varianceNum: photo.variance,
+              ));
+            }
           }
           print("  done processing asset blur, ${resPhotos.length}");
         }

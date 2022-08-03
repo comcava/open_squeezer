@@ -9,14 +9,14 @@ import 'package:path/path.dart' as path;
 // import 'package:fast_image_resizer/fast_image_resizer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_edge_detection/functions.dart';
-import 'package:isolate_handler/isolate_handler.dart';
+
 import 'package:photo_manager/photo_manager.dart';
 
 import 'package:image/image.dart' as l_img;
 
-import '../config/constants.dart';
-import '../domain/album.dart';
 import '../views/home.dart';
+
+const resizedWidth = 300;
 
 /// Arithmetic mean of the bytes in the array
 double mean(Uint8List bytes) {
@@ -76,14 +76,13 @@ Future<double?> assetBlur(AssetEntity image) async {
 
   debugPrint("processing image '$title'");
 
-  Uint8List? rawBytes = await image.thumbnailData;
+  Uint8List? rawBytes = await image.originBytes;
 
   if (rawBytes == null || rawBytes.isEmpty) {
     debugPrint("rawBytes is empty for '$title'");
     return null;
   }
 
-  const resizedWidth = 150;
   ByteData? resizedBytes = await resizeImage(rawBytes, width: resizedWidth);
 
   if (resizedBytes == null) {
@@ -117,59 +116,6 @@ Future<double?> assetBlur(AssetEntity image) async {
   return varianceNum;
 }
 
-// TODO: remove
-Future<l_img.Image?> assetBlur1(AssetEntity image) async {
-  var title = image.title;
-  if (kDebugMode) {
-    // title is only used for logging.
-    // we won't need to load it in production
-    title = await image.titleAsync;
-  }
-
-  if (image.typeInt != AssetType.image.index) {
-    print("'$title' is not AssetType.image");
-    return null;
-  }
-
-  bool exists = await image.exists;
-
-  if (!exists) {
-    print("'$title' does not exist");
-    return null;
-  }
-
-  debugPrint("processing image '$title'");
-
-  Uint8List? rawBytes = await image.thumbnailData;
-
-  if (rawBytes == null || rawBytes.isEmpty) {
-    debugPrint("rawBytes is empty for '$title'");
-    return null;
-  }
-
-  const resizedWidth = 150;
-  ByteData? resizedBytes = await resizeImage(rawBytes, width: resizedWidth);
-
-  if (resizedBytes == null) {
-    debugPrint("couldn't resize ${image.title}");
-    return null;
-  }
-
-  // 4 channels in rgba
-  var resizedHeight = (resizedBytes.lengthInBytes / resizedWidth / 4).ceil();
-
-  var decoded = l_img.Image.fromBytes(
-    resizedWidth,
-    resizedHeight,
-    resizedBytes.buffer.asUint8List(),
-    format: l_img.Format.rgba,
-  );
-
-  var laplacian = await applyLaplaceOnImage(decoded);
-
-  return laplacian;
-}
-
 /// Process all assets with laplacian analyzer
 Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
     Iterable<String> assetsIds, LaplacianIsolate isolate) async {
@@ -185,8 +131,6 @@ Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
   }
 
   print("done finding all files, ${assetsIds.length}");
-
-  // List<List<String>> allItems = ;
 
   List<String> allItems = await isolate.sendPayload(messages);
 
