@@ -2,16 +2,12 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 
-import 'package:blur_detector/services/laplacian_isolate.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:image_edge_detection/functions.dart';
 
 import 'package:photo_manager/photo_manager.dart';
 
 import 'package:image/image.dart' as l_img;
-
-import '../views/home.dart';
 
 /// Width the image should be resized to
 const resizedWidth = 300;

@@ -138,14 +138,12 @@ class HomeController {
       List<PhotoItem> resPhotos = List.empty(growable: true);
 
       for (var page = 0; page < totalPages; page++) {
-        print(
+        debugPrint(
           "processing ${path.name}, page $page, isScreenshots: $isScreenshots",
         );
 
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
-
-        print("got asset list");
 
         if (isScreenshots) {
           resPhotos.addAll(

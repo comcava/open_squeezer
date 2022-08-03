@@ -5,8 +5,6 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
-import 'services/laplacian_analyzer.dart' as lap;
-
 import 'router.gr.dart';
 import 'config/constants.dart';
 

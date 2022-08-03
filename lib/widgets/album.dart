@@ -1,11 +1,4 @@
-import 'dart:typed_data';
-
-import 'package:blur_detector/services/laplacian_analyzer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import 'package:image_edge_detection/functions.dart';
-import 'package:image/image.dart' as l_img;
 
 import '../config/constants.dart';
 import '../domain/album.dart';
@@ -40,9 +33,6 @@ class Album extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final theme = Theme.of(context);
-        final loc = AppLocalizations.of(context)!;
-
         List<Widget> photoRows = List.empty(growable: true);
 
         var photosPerRow = (constraints.maxWidth / kPhotoSize).floor();
@@ -157,10 +147,6 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
       debugPrint("data null for ${widget.item.photo.title}");
       return;
     }
-
-// TODO: remove
-    // var i = await assetBlur1(widget.item.photo);
-    // var data = Uint8List.fromList(l_img.encodePng(i!));
 
     _imageWidget ??= Image.memory(
       data,
