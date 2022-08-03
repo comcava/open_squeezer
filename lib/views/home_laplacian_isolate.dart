@@ -1,7 +1,9 @@
-// Laplacian analyzer function. Has to be a part of home
+// An isolate that receives laplacian messages.
+// Has to be a part of home, otherwise dart throws an error
 
 part of 'home.dart';
 
+/// Message to be sent to laplacian isolate
 class LaplacianHomeIsolateMsg {
   final String id;
 
@@ -32,6 +34,7 @@ class LaplacianHomeIsolateMsg {
   }
 }
 
+/// Response that laplacian isolate returns
 class LaplacianHomeIsolateResp {
   final String id;
   final double variance;
@@ -66,20 +69,21 @@ class LaplacianHomeIsolateResp {
   }
 }
 
-class LaplacianHome {
+///
+class LaplacianHomeIsolate {
   static Future<String> getVariance(LaplacianHomeIsolateMsg message) async {
     try {
       var asset = await pm.AssetEntity.fromId(message.id);
 
       if (asset == null) {
-        print("asset is null for ${message.id}");
+        debugPrint("asset is null for ${message.id}");
         return "";
       }
 
       var variance = await assetBlur(asset);
 
       if (variance == null || variance == 0) {
-        print("variance 0 for ${message.id}");
+        debugPrint("variance 0 for ${message.id}");
       }
 
       return LaplacianHomeIsolateResp(
@@ -107,7 +111,8 @@ class LaplacianHome {
     for (var messageJson in messages) {
       var message = LaplacianHomeIsolateMsg.fromJson(messageJson);
       if (message == null) {
-        debugPrint("Couldn't deserialize message in LaplacianHome.processMsg");
+        debugPrint(
+            "Couldn't deserialize message in LaplacianHomeIsolate.processMsg");
         continue;
       }
 
@@ -124,22 +129,22 @@ class LaplacianHome {
   static void isolateHandler(dynamic context) async {
     final messenger = ih.HandledIsolate.initialize(context);
 
+    // Assume we got all permissions on the main thread.
+    // Permission request requires an activity to be attached to.
     pm.PhotoManager.setIgnorePermissionCheck(true);
-
-// TODO: toast if doesn't exist
 
     messenger.listen((msg) async {
       if (msg is! List<String>) {
         debugPrint(
-          """Invalid message type '${msg.runtimeType}' 
-            in LaplacianHome.analyze, skipping""",
+          """
+            Invalid message type '${msg.runtimeType}' 
+            in LaplacianHomeIsolate.analyze, skipping
+          """,
         );
         return;
       }
 
-      var res = await LaplacianHome.processMsg(msg);
-
-      print("got laplacian isolate string result: '$res'");
+      var res = await LaplacianHomeIsolate.processMsg(msg);
 
       messenger.send(res);
     });

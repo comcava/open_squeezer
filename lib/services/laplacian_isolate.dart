@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:isolate_handler/isolate_handler.dart';
 
 import '../views/home.dart';
 
 class LaplacianIsolate {
-  final isolates = IsolateHandler();
-  StreamController? stream;
+  final _isolates = IsolateHandler();
+  StreamController? _stream;
 
   late String name;
   bool _isInit = false;
@@ -22,24 +23,19 @@ class LaplacianIsolate {
   /// Message should be of type
   /// `List<LaplacianHomeIsolateMsg.toJson()>`.
   Future<void> _spawnIsolate() async {
-    isolates.spawn<dynamic>(
-      LaplacianHome.isolateHandler,
+    _isolates.spawn<dynamic>(
+      LaplacianHomeIsolate.isolateHandler,
       name: name,
       onReceive: (msg) {
-        print("isolate onReceive");
-        stream?.add(msg);
+        _stream?.add(msg);
       },
       onInitialized: () {
-        print("isolate oninit");
         _isInit = true;
       },
     );
-
-    print("done spawnIsolate");
   }
 
   Future<void> waitInit() async {
-    print("start waitInit");
     if (_isInit) {
       return Future.value();
     }
@@ -55,44 +51,68 @@ class LaplacianIsolate {
 
     check();
     await completer.future;
-
-    print("done wait.init");
-
-    return;
   }
 
-  /// Send all payload messages to an isolate.
-  /// When all the messages are resolved, returns the result.
-  Future<List<String>> sendPayload(List<String> message) async {
+// TODO: consider using two isolates
+
+  /// Calculate blur for all assets with laplacian analyzer.
+  /// Will send all the payload to an isolate
+  Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
+    Iterable<String> assetsIds,
+  ) async {
+    List<String> messages = List.empty(growable: true);
+
+    for (final assetId in assetsIds) {
+      messages.add(
+        LaplacianHomeIsolateMsg(id: assetId).toJson(),
+      );
+    }
+
+    List<String> allItems = await _sendPayload(messages);
+
+    List<LaplacianHomeIsolateResp> responses = List.empty(growable: true);
+
+    for (var respJson in allItems) {
+      var r = LaplacianHomeIsolateResp.fromJson(respJson);
+
+      if (r == null) {
+        continue;
+      }
+
+      responses.add(r);
+    }
+
+    return responses;
+  }
+
+  Future<List<String>> _sendPayload(List<String> message) async {
     if (!_isInit) {
       throw "Uninitialized. Use waitInit() to wait before the isolate is initialized";
     }
 
-    stream = StreamController();
+    _stream = StreamController();
 
-    print("start sendPayload");
+    _isolates.send(message, to: name);
 
-    isolates.send(message, to: name);
+    var event = await _stream!.stream.first;
 
-    var event = await stream!.stream.first;
-
-    await stream!.close();
-    stream = null;
+    await _stream!.close();
+    _stream = null;
 
     List<String> respMessage;
     if (event is! List<String>) {
-      print("event is not List<String>, is ${event.runtimeType}");
+      debugPrint(
+        "sendPayload event is not List<String>, is ${event.runtimeType}",
+      );
       respMessage = [];
     } else {
       respMessage = event;
     }
 
-    print("done send payload");
-
     return respMessage;
   }
 
   void kill() {
-    isolates.kill(name);
+    _isolates.kill(name);
   }
 }

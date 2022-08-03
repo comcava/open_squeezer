@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:math';
-import 'dart:io';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
-import 'package:blur_detector/services/laplacian_isolate.dart';
-import 'package:path/path.dart' as path;
 
-// import 'package:fast_image_resizer/fast_image_resizer.dart';
+import 'package:blur_detector/services/laplacian_isolate.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:image_edge_detection/functions.dart';
 
@@ -16,6 +13,7 @@ import 'package:image/image.dart' as l_img;
 
 import '../views/home.dart';
 
+/// Width the image should be resized to
 const resizedWidth = 300;
 
 /// Arithmetic mean of the bytes in the array
@@ -45,7 +43,10 @@ double variance(Uint8List bytes) {
   return variance;
 }
 
-/// From fast_image_resizer
+/// From [fast_image_resizer].
+/// Copied because they didn't support `ui.ImageByteFormat`
+///
+/// [fast_image_resizer]: https://pub.dev/packages/fast_image_resizer
 Future<ByteData?> resizeImage(Uint8List rawImage,
     {int? width, int? height}) async {
   final codec = await ui.instantiateImageCodec(rawImage,
@@ -54,6 +55,7 @@ Future<ByteData?> resizeImage(Uint8List rawImage,
   return resizedImage.toByteData(format: ui.ImageByteFormat.rawRgba);
 }
 
+/// Calculate laplacian variance for the image asset
 Future<double?> assetBlur(AssetEntity image) async {
   var title = image.title;
   if (kDebugMode) {
@@ -63,18 +65,16 @@ Future<double?> assetBlur(AssetEntity image) async {
   }
 
   if (image.typeInt != AssetType.image.index) {
-    print("'$title' is not AssetType.image");
+    debugPrint("'$title' is not AssetType.image");
     return null;
   }
 
   bool exists = await image.exists;
 
   if (!exists) {
-    print("'$title' does not exist");
+    debugPrint("'$title' does not exist");
     return null;
   }
-
-  debugPrint("processing image '$title'");
 
   Uint8List? rawBytes = await image.originBytes;
 
@@ -100,9 +100,6 @@ Future<double?> assetBlur(AssetEntity image) async {
     format: l_img.Format.rgba,
   );
 
-  var varianceColor = variance(decoded.data.buffer.asUint8List());
-  print("got color variance for $title: $varianceColor");
-
   var laplacian = await applyLaplaceOnImage(decoded);
 
   var grayBytes = laplacian.getBytes(
@@ -111,40 +108,5 @@ Future<double?> assetBlur(AssetEntity image) async {
 
   var varianceNum = variance(grayBytes);
 
-  print("got laplacian variance for $title: $varianceNum");
-
   return varianceNum;
-}
-
-/// Process all assets with laplacian analyzer
-Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
-    Iterable<String> assetsIds, LaplacianIsolate isolate) async {
-  // var windowSize = (assetsIds.length / 2).floor();
-
-  List<String> messages = List.empty(growable: true);
-
-  print("start finding all files");
-  for (final assetId in assetsIds) {
-    messages.add(
-      LaplacianHomeIsolateMsg(id: assetId).toJson(),
-    );
-  }
-
-  print("done finding all files, ${assetsIds.length}");
-
-  List<String> allItems = await isolate.sendPayload(messages);
-
-  List<LaplacianHomeIsolateResp> responses = List.empty(growable: true);
-
-  for (var respJson in allItems) {
-    var r = LaplacianHomeIsolateResp.fromJson(respJson);
-
-    if (r == null) {
-      continue;
-    }
-
-    responses.add(r);
-  }
-
-  return responses;
 }

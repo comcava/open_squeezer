@@ -5,7 +5,6 @@ import 'package:blur_detector/services/laplacian_isolate.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../services/laplacian_analyzer.dart' as la;
 import '../config/constants.dart';
 import '../domain/album.dart';
 
@@ -81,9 +80,7 @@ class HomeController {
     );
 
     for (final path in paths) {
-      // TODO: fix
-      // var totalPages = (path.assetCount / kPhotoPageSize).ceil();
-      var totalPages = 1;
+      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
       for (var page = 0; page <= totalPages; page++) {
         var videos =
@@ -166,15 +163,12 @@ class HomeController {
             pageAssets.putIfAbsent(photo.id, () => photo);
           }
 
-          print("start processing asset blur, ${pageAssets.length}");
-
-          var photoVariances = await la.allAssetsBlur(pageAssets.keys, isolate);
+          var photoVariances = await isolate.allAssetsBlur(pageAssets.keys);
 
           for (var photo in photoVariances) {
             var asset = pageAssets[photo.id];
 
             if (asset == null) {
-              // TODO: print
               continue;
             }
 
@@ -185,7 +179,6 @@ class HomeController {
               ));
             }
           }
-          print("  done processing asset blur, ${resPhotos.length}");
         }
       }
 
