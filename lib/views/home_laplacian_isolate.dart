@@ -1,41 +1,40 @@
-// Laplacian analyzer function. Has to be a part of home
+// An isolate that receives laplacian messages.
+// Has to be a part of home, otherwise dart throws an error
 
 part of 'home.dart';
 
+/// Message to be sent to laplacian isolate
 class LaplacianHomeIsolateMsg {
   final String id;
-  final String? title;
-  final String path;
 
   const LaplacianHomeIsolateMsg({
     required this.id,
-    this.title,
-    required this.path,
   });
 
   String toJson() {
     return jsonEncode({
       "id": id,
-      "title": title,
-      "path": path,
     });
   }
 
   static LaplacianHomeIsolateMsg? fromJson(String source) {
+    if (source.isEmpty) {
+      return null;
+    }
+
     final v = jsonDecode(source);
 
-    if (v["id"] == null || v["path"] == null) {
+    if (v["id"] == null) {
       return null;
     }
 
     return LaplacianHomeIsolateMsg(
       id: v["id"],
-      title: v["title"],
-      path: v["path"],
     );
   }
 }
 
+/// Response that laplacian isolate returns
 class LaplacianHomeIsolateResp {
   final String id;
   final double variance;
@@ -53,6 +52,10 @@ class LaplacianHomeIsolateResp {
   }
 
   static LaplacianHomeIsolateResp? fromJson(String source) {
+    if (source.isEmpty) {
+      return null;
+    }
+
     final v = jsonDecode(source);
 
     if (v["id"] == null || v["variance"] == null) {
@@ -66,32 +69,39 @@ class LaplacianHomeIsolateResp {
   }
 }
 
-class LaplacianHome {
+///
+class LaplacianHomeIsolate {
+  static Future<String> getVariance(LaplacianHomeIsolateMsg message) async {
+    try {
+      var asset = await pm.AssetEntity.fromId(message.id);
+
+      if (asset == null) {
+        debugPrint("asset is null for ${message.id}");
+        return "";
+      }
+
+      var variance = await assetBlur(asset);
+
+      if (variance == null || variance == 0) {
+        debugPrint("variance 0 for ${message.id}");
+      }
+
+      return LaplacianHomeIsolateResp(
+        id: message.id,
+        variance: variance ?? 0,
+      ).toJson();
+    } catch (e) {
+      debugPrint("Error getting variance for ");
+    }
+
+    return "";
+  }
+
   /// Takes a `List<LaplacianHomeIsolateMsg>`
   /// and returns `List<LaplacianHomeIsolateResp>`
   static Future<List<String>> processMsg(
     List<String> messages,
   ) async {
-    Future<String> getInsertVariance(LaplacianHomeIsolateMsg message) async {
-      try {
-        var variance = await assetBlur(
-          title: message.title ?? "",
-          imagePath: message.path,
-        );
-
-        if (variance == null || variance < kLaplacianBlurThreshold) {
-          return LaplacianHomeIsolateResp(
-            id: message.id,
-            variance: variance ?? 0,
-          ).toJson();
-        }
-      } catch (e) {
-        debugPrint("Error getting variance for ");
-      }
-
-      return "";
-    }
-
     if (messages.isEmpty) {
       return [];
     }
@@ -101,11 +111,12 @@ class LaplacianHome {
     for (var messageJson in messages) {
       var message = LaplacianHomeIsolateMsg.fromJson(messageJson);
       if (message == null) {
-        debugPrint("Couldn't deserialize message in LaplacianHome.processMsg");
+        debugPrint(
+            "Couldn't deserialize message in LaplacianHomeIsolate.processMsg");
         continue;
       }
 
-      varianceFutures.add(getInsertVariance(message));
+      varianceFutures.add(getVariance(message));
     }
 
     List<String> res = await Future.wait(varianceFutures);
@@ -118,16 +129,22 @@ class LaplacianHome {
   static void isolateHandler(dynamic context) async {
     final messenger = ih.HandledIsolate.initialize(context);
 
+    // Assume we got all permissions on the main thread.
+    // Permission request requires an activity to be attached to.
+    pm.PhotoManager.setIgnorePermissionCheck(true);
+
     messenger.listen((msg) async {
       if (msg is! List<String>) {
         debugPrint(
-          """Invalid message type '${msg.runtimeType}' 
-            in LaplacianHome.analyze, skipping""",
+          """
+            Invalid message type '${msg.runtimeType}' 
+            in LaplacianHomeIsolate.analyze, skipping
+          """,
         );
         return;
       }
 
-      var res = await LaplacianHome.processMsg(msg);
+      var res = await LaplacianHomeIsolate.processMsg(msg);
 
       messenger.send(res);
     });

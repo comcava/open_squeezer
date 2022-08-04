@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:blur_detector/services/laplacian_isolate.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../services/laplacian_analyzer.dart' as la;
 import '../config/constants.dart';
 import '../domain/album.dart';
 
@@ -80,9 +80,7 @@ class HomeController {
     );
 
     for (final path in paths) {
-      // TODO: fix
-      // var totalPages = (path.assetCount / kPhotoPageSize).ceil();
-      var totalPages = 1;
+      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
 
       for (var page = 0; page <= totalPages; page++) {
         var videos =
@@ -118,6 +116,10 @@ class HomeController {
       type: RequestType.image,
     );
 
+    LaplacianIsolate isolate = LaplacianIsolate();
+
+    await isolate.waitInit();
+
     for (var path in paths) {
       _processingAlbumName = path.name;
       onChanged();
@@ -128,22 +130,23 @@ class HomeController {
         isScreenshots = true;
       }
 
-      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      var totalPages = min(
+        (path.assetCount / kPhotoPageSize).ceil(),
+        kPhotoMaxPages,
+      );
 
-      List<PhotoItem> allPhotos = List.empty(growable: true);
+      List<PhotoItem> resPhotos = List.empty(growable: true);
 
       for (var page = 0; page < totalPages; page++) {
-        print(
+        debugPrint(
           "processing ${path.name}, page $page, isScreenshots: $isScreenshots",
         );
 
         var pageList =
             await path.getAssetListPaged(page: page, size: kPhotoPageSize);
 
-        print("got asset list");
-
         if (isScreenshots) {
-          allPhotos.addAll(
+          resPhotos.addAll(
             pageList.map(
               (photo) => PhotoItem(
                 photo: photo,
@@ -152,22 +155,42 @@ class HomeController {
             ),
           );
         } else {
-          print("start processing asset blur");
-          var photos = await la.allAssetsBlur(pageList);
-          allPhotos.addAll(photos);
-          print("  done processing asset blur");
+          Map<String, AssetEntity> pageAssets = {};
+
+          for (var photo in pageList) {
+            pageAssets.putIfAbsent(photo.id, () => photo);
+          }
+
+          var photoVariances = await isolate.allAssetsBlur(pageAssets.keys);
+
+          for (var photo in photoVariances) {
+            var asset = pageAssets[photo.id];
+
+            if (asset == null) {
+              continue;
+            }
+
+            if (photo.variance < kLaplacianVarianceThreshold) {
+              resPhotos.add(PhotoItem(
+                photo: asset,
+                varianceNum: photo.variance,
+              ));
+            }
+          }
         }
       }
 
-      if (allPhotos.isNotEmpty) {
+      if (resPhotos.isNotEmpty) {
         _photos.add(
           PhotoAlbumItem(
             album: path,
-            photos: allPhotos,
+            photos: resPhotos,
           ),
         );
       }
     }
+
+    isolate.kill();
 
     _sortPhotos();
 

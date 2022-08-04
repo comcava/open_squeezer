@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../config/constants.dart';
 import '../domain/album.dart';
@@ -34,9 +33,6 @@ class Album extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final theme = Theme.of(context);
-        final loc = AppLocalizations.of(context)!;
-
         List<Widget> photoRows = List.empty(growable: true);
 
         var photosPerRow = (constraints.maxWidth / kPhotoSize).floor();
@@ -148,7 +144,7 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
     var data = await widget.item.photo.thumbnailData;
 
     if (data == null) {
-      print("data null for ${widget.item.photo.title}");
+      debugPrint("data null for ${widget.item.photo.title}");
       return;
     }
 
