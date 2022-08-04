@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:blur_detector/services/laplacian_isolate.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../config/constants.dart';
 import '../domain/album.dart';
+import '../services/laplacian_isolate.dart';
 
 class HomeController {
   final List<PhotoAlbumItem> _photos = List.empty(growable: true);

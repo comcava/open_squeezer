@@ -1,7 +1,8 @@
-import 'package:blur_detector/config/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:photo_manager/photo_manager.dart';
+
+import '../config/constants.dart';
 
 class NoPermissions extends StatelessWidget {
   const NoPermissions({Key? key}) : super(key: key);

@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:auto_route/auto_route.dart';
-import 'package:blur_detector/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+
+import 'package:auto_route/auto_route.dart';
 import 'package:isolate_handler/isolate_handler.dart' as ih;
 import 'package:photo_manager/photo_manager.dart' as pm;
 
+import '../router.gr.dart';
 import '../services/laplacian_analyzer.dart';
 import '../widgets/album.dart';
 import '../widgets/no_permissions.dart';
