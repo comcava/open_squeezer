@@ -184,15 +184,6 @@ class _PhotoThumbnailState extends State<PhotoThumbnail> {
                 width: kPhotoSize,
                 child: _imageWidget,
               ),
-              // TODO: delete
-              Align(
-                alignment: Alignment.center,
-                child: Text(
-                  "v: ${widget.item.varianceNum}",
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: Color.fromARGB(255, 193, 193, 193)),
-                ),
-              ),
               Align(
                 alignment: Alignment.bottomRight,
                 child: Container(

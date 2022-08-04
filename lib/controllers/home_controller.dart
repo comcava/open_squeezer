@@ -121,9 +121,6 @@ class HomeController {
     await isolate.waitInit();
 
     for (var path in paths) {
-      _processingAlbumName = path.name;
-      onChanged();
-
       bool isScreenshots = false;
 
       if (kScreenshotsFolders.contains(path.name)) {
@@ -138,6 +135,9 @@ class HomeController {
       List<PhotoItem> resPhotos = List.empty(growable: true);
 
       for (var page = 0; page < totalPages; page++) {
+        _processingAlbumName = "${path.name}, ${page + 1} / $totalPages";
+        onChanged();
+
         debugPrint(
           "processing ${path.name}, page $page, isScreenshots: $isScreenshots",
         );
