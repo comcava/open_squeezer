@@ -1,8 +1,10 @@
-import 'package:auto_route/auto_route.dart';
-import 'package:blur_detector/config/constants.dart';
-import 'package:blur_detector/router.gr.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+import 'package:auto_route/auto_route.dart';
+
+import '../config/constants.dart';
+import '../router.gr.dart';
 
 class ClearDonePage extends StatelessWidget {
   const ClearDonePage({Key? key}) : super(key: key);

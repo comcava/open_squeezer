@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:blur_detector/services/laplacian_isolate.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../config/constants.dart';
 import '../domain/album.dart';
+import '../services/laplacian_isolate.dart';
 
 class HomeController {
   final List<PhotoAlbumItem> _photos = List.empty(growable: true);
@@ -121,9 +121,6 @@ class HomeController {
     await isolate.waitInit();
 
     for (var path in paths) {
-      _processingAlbumName = path.name;
-      onChanged();
-
       bool isScreenshots = false;
 
       if (kScreenshotsFolders.contains(path.name)) {
@@ -138,6 +135,9 @@ class HomeController {
       List<PhotoItem> resPhotos = List.empty(growable: true);
 
       for (var page = 0; page < totalPages; page++) {
+        _processingAlbumName = "${path.name}, ${page + 1} / $totalPages";
+        onChanged();
+
         debugPrint(
           "processing ${path.name}, page $page, isScreenshots: $isScreenshots",
         );
