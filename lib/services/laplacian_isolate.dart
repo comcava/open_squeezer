@@ -26,7 +26,6 @@ class LaplacianIsolate {
   /// Message should be of type
   /// `List<LaplacianHomeIsolateMsg.toJson()>`.
   Future<void> _spawnIsolate() async {
-    print("spawn isolate");
     try {
       _isolates.spawn<dynamic>(
         LaplacianHomeIsolate.isolateHandler,
@@ -39,7 +38,7 @@ class LaplacianIsolate {
         },
       );
     } catch (e) {
-      print("Error spawning isolate: $e");
+      debugPrint("Error spawning isolate: $e");
     }
   }
 
@@ -61,40 +60,35 @@ class LaplacianIsolate {
     await completer.future;
   }
 
-  Future<List> allAssetsBlur(
+  /// Calculate blur for all assets with laplacian analyzer.
+  /// Will send all the payload to an isolate
+  Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
     Iterable<String> assetsIds,
   ) async {
-    return [];
+    List<String> messages = List.empty(growable: true);
+
+    for (final assetId in assetsIds) {
+      messages.add(
+        LaplacianHomeIsolateMsg(id: assetId).toJson(),
+      );
+    }
+
+    List<String> allItems = await _sendPayload(messages);
+
+    List<LaplacianHomeIsolateResp> responses = List.empty(growable: true);
+
+    for (var respJson in allItems) {
+      var r = LaplacianHomeIsolateResp.fromJson(respJson);
+
+      if (r == null) {
+        continue;
+      }
+
+      responses.add(r);
+    }
+
+    return responses;
   }
-  // /// Calculate blur for all assets with laplacian analyzer.
-  // /// Will send all the payload to an isolate
-  // Future<List<LaplacianHomeIsolateResp>> allAssetsBlur(
-  //   Iterable<String> assetsIds,
-  // ) async {
-  //   List<String> messages = List.empty(growable: true);
-
-  //   for (final assetId in assetsIds) {
-  //     messages.add(
-  //       LaplacianHomeIsolateMsg(id: assetId).toJson(),
-  //     );
-  //   }
-
-  //   List<String> allItems = await _sendPayload(messages);
-
-  //   List<LaplacianHomeIsolateResp> responses = List.empty(growable: true);
-
-  //   for (var respJson in allItems) {
-  //     var r = LaplacianHomeIsolateResp.fromJson(respJson);
-
-  //     if (r == null) {
-  //       continue;
-  //     }
-
-  //     responses.add(r);
-  //   }
-
-  //   return responses;
-  // }
 
   Future<List<String>> _sendPayload(List<String> message) async {
     if (!_isInit) {

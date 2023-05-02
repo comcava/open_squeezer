@@ -5,7 +5,7 @@ import 'router.gr.dart';
 @AutoRouterConfig()
 class AppRouter extends $AppRouter {
   @override
-  RouteType get defaultRouteType => RouteType.material();
+  RouteType get defaultRouteType => const RouteType.material();
 
   @override
   List<AutoRoute> get routes => [

@@ -101,8 +101,6 @@ class HomeController {
     );
     final assetCounts = await _getAssetCounts(paths);
 
-    ;
-
     for (final path in paths) {
       var assetCount = assetCounts[path.id] ?? 1;
       var totalPages = (assetCount / kPhotoPageSize).ceil();
