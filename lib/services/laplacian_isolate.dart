@@ -8,7 +8,7 @@ import '../views/home.dart';
 
 /// Calculate laplacian on 2 isolates
 class LaplacianIsolate {
-  final _isolates = IsolateHandler();
+  late IsolateHandler _isolates;
   StreamController? _stream;
 
   late String name;
@@ -17,6 +17,8 @@ class LaplacianIsolate {
   LaplacianIsolate() {
     int nameId = Random().nextInt(100000);
     name = "squeezer_$nameId";
+
+    _isolates = IsolateHandler();
 
     _spawnIsolate();
   }

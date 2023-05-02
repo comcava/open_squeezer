@@ -69,7 +69,6 @@ class LaplacianHomeIsolateResp {
   }
 }
 
-///
 class LaplacianHomeIsolate {
   static Future<String> getVariance(LaplacianHomeIsolateMsg message) async {
     try {
