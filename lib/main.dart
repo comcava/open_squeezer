@@ -32,9 +32,7 @@ class MyApp extends StatelessWidget {
       title: 'Open Squeezer',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      routerDelegate: _appRouter.delegate(
-        initialDeepLink: "/",
-      ),
+      routerDelegate: _appRouter.delegate(),
       routeInformationParser: _appRouter.defaultRouteParser(),
       theme: lightTheme,
       darkTheme: darkTheme,
