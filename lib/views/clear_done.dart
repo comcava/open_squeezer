@@ -6,6 +6,7 @@ import 'package:auto_route/auto_route.dart';
 import '../config/constants.dart';
 import '../router.gr.dart';
 
+@RoutePage()
 class ClearDonePage extends StatelessWidget {
   const ClearDonePage({Key? key}) : super(key: key);
 

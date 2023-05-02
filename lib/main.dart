@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
-import 'router.gr.dart';
+import 'router.dart';
 import 'config/constants.dart';
 
 void main() {
@@ -32,9 +32,7 @@ class MyApp extends StatelessWidget {
       title: 'Open Squeezer',
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      routerDelegate: _appRouter.delegate(
-        initialDeepLink: "/",
-      ),
+      routerDelegate: _appRouter.delegate(),
       routeInformationParser: _appRouter.defaultRouteParser(),
       theme: lightTheme,
       darkTheme: darkTheme,

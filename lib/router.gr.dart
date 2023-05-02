@@ -1,56 +1,61 @@
-// **************************************************************************
-// AutoRouteGenerator
-// **************************************************************************
-
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
-// AutoRouteGenerator
+// AutoRouterGenerator
 // **************************************************************************
-//
+
 // ignore_for_file: type=lint
+// coverage:ignore-file
 
+// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i3;
-import 'package:flutter/material.dart' as _i4;
+import 'package:open_squeezer/views/clear_done.dart' as _i2;
+import 'package:open_squeezer/views/home.dart' as _i1;
 
-import 'views/clear_done.dart' as _i2;
-import 'views/home.dart' as _i1;
-
-class AppRouter extends _i3.RootStackRouter {
-  AppRouter([_i4.GlobalKey<_i4.NavigatorState>? navigatorKey])
-      : super(navigatorKey);
+abstract class $AppRouter extends _i3.RootStackRouter {
+  $AppRouter({super.navigatorKey});
 
   @override
   final Map<String, _i3.PageFactory> pagesMap = {
     HomeRoute.name: (routeData) {
-      return _i3.MaterialPageX<dynamic>(
-          routeData: routeData, child: const _i1.HomePage());
+      return _i3.AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const _i1.HomePage(),
+      );
     },
     ClearDoneRoute.name: (routeData) {
-      return _i3.MaterialPageX<dynamic>(
-          routeData: routeData, child: const _i2.ClearDonePage());
-    }
+      return _i3.AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const _i2.ClearDonePage(),
+      );
+    },
   };
-
-  @override
-  List<_i3.RouteConfig> get routes => [
-        _i3.RouteConfig(HomeRoute.name, path: '/'),
-        _i3.RouteConfig(ClearDoneRoute.name, path: '/clear-done-page')
-      ];
 }
 
 /// generated route for
 /// [_i1.HomePage]
 class HomeRoute extends _i3.PageRouteInfo<void> {
-  const HomeRoute() : super(HomeRoute.name, path: '/');
+  const HomeRoute({List<_i3.PageRouteInfo>? children})
+      : super(
+          HomeRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'HomeRoute';
+
+  static const _i3.PageInfo<void> page = _i3.PageInfo<void>(name);
 }
 
 /// generated route for
 /// [_i2.ClearDonePage]
 class ClearDoneRoute extends _i3.PageRouteInfo<void> {
-  const ClearDoneRoute() : super(ClearDoneRoute.name, path: '/clear-done-page');
+  const ClearDoneRoute({List<_i3.PageRouteInfo>? children})
+      : super(
+          ClearDoneRoute.name,
+          initialChildren: children,
+        );
 
   static const String name = 'ClearDoneRoute';
+
+  static const _i3.PageInfo<void> page = _i3.PageInfo<void>(name);
 }

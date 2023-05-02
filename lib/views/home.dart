@@ -7,18 +7,22 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:isolate_handler/isolate_handler.dart' as ih;
-import 'package:open_squeezer/widgets/button_about.dart';
 import 'package:photo_manager/photo_manager.dart' as pm;
 
-import '../router.gr.dart';
 import '../services/laplacian_analyzer.dart';
+
 import '../widgets/album.dart';
 import '../widgets/no_permissions.dart';
+import '../widgets/button_about.dart';
+
 import '../config/constants.dart';
 import '../controllers/home_controller.dart';
 
+import '../router.gr.dart';
+
 part 'home_laplacian_isolate.dart';
 
+@RoutePage()
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -106,7 +110,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(loc.appName),
-        actions: [AboutButton()],
+        actions: const [AboutButton()],
       ),
       body: Padding(
         padding: const EdgeInsets.all(kScaffoldPadding),

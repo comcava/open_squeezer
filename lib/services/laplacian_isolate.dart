@@ -24,16 +24,20 @@ class LaplacianIsolate {
   /// Message should be of type
   /// `List<LaplacianHomeIsolateMsg.toJson()>`.
   Future<void> _spawnIsolate() async {
-    _isolates.spawn<dynamic>(
-      LaplacianHomeIsolate.isolateHandler,
-      name: name,
-      onReceive: (msg) {
-        _stream?.add(msg);
-      },
-      onInitialized: () {
-        _isInit = true;
-      },
-    );
+    try {
+      _isolates.spawn<dynamic>(
+        LaplacianHomeIsolate.isolateHandler,
+        name: name,
+        onReceive: (msg) {
+          _stream?.add(msg);
+        },
+        onInitialized: () {
+          _isInit = true;
+        },
+      );
+    } catch (e) {
+      debugPrint("Error spawning isolate: $e");
+    }
   }
 
   Future<void> waitInit() async {

@@ -69,7 +69,6 @@ class LaplacianHomeIsolateResp {
   }
 }
 
-///
 class LaplacianHomeIsolate {
   static Future<String> getVariance(LaplacianHomeIsolateMsg message) async {
     try {
@@ -91,7 +90,7 @@ class LaplacianHomeIsolate {
         variance: variance ?? 0,
       ).toJson();
     } catch (e) {
-      debugPrint("Error getting variance for ");
+      debugPrint("Error getting variance for ${message.id}: $e");
     }
 
     return "";
@@ -126,6 +125,7 @@ class LaplacianHomeIsolate {
 
   /// Handle blur processing.
   /// Should have a list of messages containing List<LaplacianHomeIsolateMsg>
+  @pragma('vm:entry-point')
   static void isolateHandler(dynamic context) async {
     final messenger = ih.HandledIsolate.initialize(context);
 
@@ -136,10 +136,8 @@ class LaplacianHomeIsolate {
     messenger.listen((msg) async {
       if (msg is! List<String>) {
         debugPrint(
-          """
-            Invalid message type '${msg.runtimeType}' 
-            in LaplacianHomeIsolate.analyze, skipping
-          """,
+          "Invalid message type '${msg.runtimeType}' "
+          "in LaplacianHomeIsolate.analyze, skipping",
         );
         return;
       }
