@@ -90,7 +90,7 @@ class LaplacianHomeIsolate {
         variance: variance ?? 0,
       ).toJson();
     } catch (e) {
-      debugPrint("Error getting variance for ");
+      debugPrint("Error getting variance for ${message.id}: $e");
     }
 
     return "";
