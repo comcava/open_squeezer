@@ -7,6 +7,7 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:isolate_handler/isolate_handler.dart' as ih;
+import 'package:open_squeezer/widgets/button_about.dart';
 import 'package:photo_manager/photo_manager.dart' as pm;
 
 import '../router.gr.dart';
@@ -103,7 +104,10 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(loc.appName)),
+      appBar: AppBar(
+        title: Text(loc.appName),
+        actions: [AboutButton()],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(kScaffoldPadding),
         child: _HomePageBody(controller: _controller),

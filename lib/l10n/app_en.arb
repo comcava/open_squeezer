@@ -23,5 +23,8 @@
       }
     }
   },
-  "noPhotos": "No photos here"
+  "noPhotos": "No photos here",
+  "about": "About",
+  "privacyPolicy": "Privacy policy",
+  "appLegalese": "App to remove blurry photos from the gallery"
 }

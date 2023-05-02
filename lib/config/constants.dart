@@ -81,3 +81,5 @@ const List<String> kScreenshotsFolders = [
   "Скриншоты",
   "Снимки экрана"
 ];
+
+const kPrivacyPolicyUrl = "https://babymonitor.watchwms.com/privacy";
