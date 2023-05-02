@@ -10,15 +10,17 @@ import 'package:isolate_handler/isolate_handler.dart' as ih;
 import 'package:open_squeezer/widgets/button_about.dart';
 import 'package:photo_manager/photo_manager.dart' as pm;
 
-import '../router.gr.dart';
 import '../services/laplacian_analyzer.dart';
 import '../widgets/album.dart';
 import '../widgets/no_permissions.dart';
 import '../config/constants.dart';
 import '../controllers/home_controller.dart';
 
+import '../router.gr.dart';
+
 part 'home_laplacian_isolate.dart';
 
+@RoutePage()
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 

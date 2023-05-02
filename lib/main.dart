@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
-import 'router.gr.dart';
+import 'router.dart';
 import 'config/constants.dart';
 
 void main() {
