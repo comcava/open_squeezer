@@ -1,8 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 
-import 'views/clear_done.dart';
-import 'views/home.dart';
-
 import 'router.gr.dart';
 
 @AutoRouterConfig()

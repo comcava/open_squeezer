@@ -63,6 +63,27 @@ class HomeController {
     onChanged();
   }
 
+  /// Returns a map of `path.id` as keys and `assetCount` as values
+  Future<Map<String, int>> _getAssetCounts(List<AssetPathEntity> paths) async {
+    final pathsList = await Future.wait(paths.map((p) async {
+      try {
+        final count = await p.assetCountAsync;
+        return {'path': p, 'count': count};
+      } catch (e) {
+        debugPrint("Error getting asset count for ${p.name}: $e");
+
+        return {'path': p, 'count': 1};
+      }
+    }));
+
+    final pathsMap = {
+      for (final path in pathsList)
+        (path['path'] as AssetPathEntity).id: path['count'] as int
+    };
+
+    return pathsMap;
+  }
+
   Future<void> _loadVideos() async {
     if (_noPermissions) {
       return;
@@ -78,9 +99,13 @@ class HomeController {
       type: RequestType.video,
       onlyAll: true,
     );
+    final assetCounts = await _getAssetCounts(paths);
+
+    ;
 
     for (final path in paths) {
-      var totalPages = (path.assetCount / kPhotoPageSize).ceil();
+      var assetCount = assetCounts[path.id] ?? 1;
+      var totalPages = (assetCount / kPhotoPageSize).ceil();
 
       for (var page = 0; page <= totalPages; page++) {
         var videos =
@@ -115,6 +140,7 @@ class HomeController {
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
       type: RequestType.image,
     );
+    final assetCounts = await _getAssetCounts(paths);
 
     LaplacianIsolate isolate = LaplacianIsolate();
 
@@ -127,8 +153,9 @@ class HomeController {
         isScreenshots = true;
       }
 
+      final assetCount = assetCounts[path.id] ?? 1;
       var totalPages = min(
-        (path.assetCount / kPhotoPageSize).ceil(),
+        (assetCount / kPhotoPageSize).ceil(),
         kPhotoMaxPages,
       );
 
