@@ -2,6 +2,8 @@
 
 Open-source, privacy respecting photo gallery cleaner for iOS and Android.
 
+Compiles with flutter 3.13
+
 ## Getting Started
 
 This is a Flutter application.
