@@ -8,7 +8,7 @@
 PRODUCT_NAME = open_squeezer
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.omoe.blurDetector
+PRODUCT_BUNDLE_IDENTIFIER = com.omoe.openSqueezer
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2022 com.omoe. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2023 com.omoe. All rights reserved.
