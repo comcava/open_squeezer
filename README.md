@@ -2,6 +2,11 @@
 
 Open-source, privacy respecting photo gallery cleaner for iOS and Android.
 
+Get the app here:
+
+- [Google Play](https://play.google.com/store/apps/details?id=com.omoe.open_squeezer)
+- [App Store](https://apps.apple.com/ru/app/open-squeezer/id1638376589)
+
 ## Getting Started
 
 This is a Flutter application.

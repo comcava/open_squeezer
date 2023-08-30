@@ -1,3 +1,8 @@
+# 1.0.3
+
+- Compiles with Flutter 3.13
+- Scans all files correctly in Android 13
+
 # 1.0.2
 
 - update `flex_color_scheme`, `google_fonts`, `isolate_handler`, `auto_route`
