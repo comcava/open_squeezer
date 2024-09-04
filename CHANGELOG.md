@@ -1,3 +1,7 @@
+# 1.0.4
+
+- Update `targetSdkVersion` to 34 (Android 14)
+
 # 1.0.3
 
 - Compiles with Flutter 3.13
